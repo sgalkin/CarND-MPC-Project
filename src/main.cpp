@@ -71,8 +71,7 @@ int main() {
   // MPC is initialized here!
   MPC mpc;
 
-  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
-                     uWS::OpCode opCode) {
+  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -87,10 +86,10 @@ int main() {
           // j[1] is the data JSON object
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
-          double px = j[1]["x"];
-          double py = j[1]["y"];
-          double psi = j[1]["psi"];
-          double v = j[1]["speed"];
+//          double px = j[1]["x"];
+//          double py = j[1]["y"];
+//          double psi = j[1]["psi"];
+//          double v = j[1]["speed"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -98,8 +97,8 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          double steer_value = 0;
+          double throttle_value = 0;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -150,27 +149,11 @@ int main() {
     }
   });
 
-  // We don't need this since we're not using HTTP but if it's removed the
-  // program
-  // doesn't compile :-(
-  h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data,
-                     size_t, size_t) {
-    const std::string s = "<h1>Hello world!</h1>";
-    if (req.getUrl().valueLength == 1) {
-      res->end(s.data(), s.length());
-    } else {
-      // i guess this should be done more gracefully?
-      res->end(nullptr, 0);
-    }
-  });
-
-  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+  h.onConnection([&h](uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest) {
     std::cout << "Connected!!!" << std::endl;
   });
 
-  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code,
-                         char *message, size_t length) {
-    ws.close();
+  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER>, int, char*, size_t) {
     std::cout << "Disconnected" << std::endl;
   });
 

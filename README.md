@@ -1,6 +1,6 @@
-# CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+# Model Predictive Control Project
 
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 [![CircleCI](https://circleci.com/gh/sgalkin/CarND-T2P5.svg?style=svg)](https://circleci.com/gh/sgalkin/CarND-T2P5)
 [![Build Status](https://semaphoreci.com/api/v1/sgalkin/carnd-t2p5/branches/master/shields_badge.svg)](https://semaphoreci.com/sgalkin/carnd-t2p5)
 

@@ -2,6 +2,7 @@
 Self-Driving Car Engineer Nanodegree Program
 
 [![CircleCI](https://circleci.com/gh/sgalkin/CarND-T2P5.svg?style=svg)](https://circleci.com/gh/sgalkin/CarND-T2P5)
+[![Build Status](https://semaphoreci.com/api/v1/sgalkin/carnd-t2p5/branches/master/shields_badge.svg)](https://semaphoreci.com/sgalkin/carnd-t2p5)
 
 ---
 

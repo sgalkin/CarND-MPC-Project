@@ -1,6 +1,8 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
+[![CircleCI](https://circleci.com/gh/sgalkin/CarND-T2P5/tree/master.svg?style=svg&circle-token=a8f88490cfc2fece143bed6d34f544007dba6227)]
+
 ---
 
 ## Dependencies

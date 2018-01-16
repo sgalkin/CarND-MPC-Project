@@ -10,11 +10,12 @@
 #include "application.h"
 #include "protocol.h"
 #include "io.h"
-#include "processor.h"
+#include "mpc.h"
 #include "compose.h"
+#include "state.h"
 
 namespace {
-using WSApplication = Application<WSProtocol, Json, Json, Count>;
+using WSApplication = Application<WSProtocol, Json, Json, Compose<MPC, Count>>;
 
 constexpr uint16_t port = 4567;
 constexpr std::chrono::milliseconds delay(100);

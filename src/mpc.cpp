@@ -1,4 +1,10 @@
-#include "MPC.h"
+#include "mpc.h"
+#include "state.h"
+#include "control.h"
+
+Control MPC::operator()(State) { return Control{}; }
+
+/*
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
@@ -28,7 +34,7 @@ class FG_eval {
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
-  void operator()(ADvector& /*fg*/, const ADvector& /*vars*/) {
+  void operator()(ADvector& / *fg* /, const ADvector& / *vars* /) {
     // TODO: implement MPC
     // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
     // NOTE: You'll probably go back and forth between this function and
@@ -42,7 +48,7 @@ class FG_eval {
 MPC::MPC() {}
 MPC::~MPC() {}
 
-vector<double> MPC::Solve(Eigen::VectorXd /*state*/, Eigen::VectorXd coeffs) {
+vector<double> MPC::Solve(Eigen::VectorXd / *state* /, Eigen::VectorXd coeffs) {
   bool ok = true;
   //size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
@@ -119,3 +125,4 @@ vector<double> MPC::Solve(Eigen::VectorXd /*state*/, Eigen::VectorXd coeffs) {
   // creates a 2 element double vector.
   return {};
 }
+*/

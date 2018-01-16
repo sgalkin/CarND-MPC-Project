@@ -1,46 +1,41 @@
 #pragma once
 
-//template<typename V, typename H>
-//apply
-/*
-template<typename V, typename H, typename... L, typename T>
-typename std::result_of<typename T::operator()(typename V)>::type
-apply(V v H h, L... l, T t) {
-  return apply<V, L..., T>(h(std::move(v)));
-}
-*/
-/*
-template<typename V, typename H, typename... T>
-struct result {
-  typedef typename std::result_of<typename H::foo(V)>::type type;
-};
-*/
-/*
-template<typename H, typename... P>
-struct Compose {
-  explicit Compose(H h, P... p) : p_(h, p...)
-  {}
-  
-  template<typename V>
-  void operator()(V v) {
-    
+#include <type_traits>
+#include <utility>
+
+template <typename H, typename... T>
+class Compose {
+  H head_;
+  Compose<T...> tail_;
+
+public:
+  Compose() : head_(H()), tail_(T()...) {}  
+  explicit Compose(H h, T... t) : head_(h), tail_(t...) {}
+
+  template <typename... Args>
+  auto operator() (Args&&... args) ->
+    typename std::result_of<
+      H(decltype(tail_(std::forward<Args&&...>(args...))))
+    >::type {
+    return head_(tail_(std::forward<Args&&...>(args...)));
   }
-  
-  std::tuple<H, P...> p_;
 };
 
-namespace {
-  struct A { std::string operator()(int ) { return "42"; } };
-  struct B { double operator()(std::string ) { return -1; } };
+template <typename F>
+class Compose<F> {
+  F f_;
+public:
+  explicit Compose(F f = F()) : f_(f) {}
 
-  static auto y = Compose<A>(A());
-  static auto z = Compose<A, B>(A(), B());
+  template <typename... Args>
+  auto operator() (Args&&... args) ->
+    typename std::result_of<F(Args&&...)>::type {
+    return f_(std::forward<Args&&...>(args...));
+  }
+};
 
-  static auto r = [] {
-    std::cout << y(22) << std::endl;
-    std::cout << z(44) << std::endl;
-    return 44;
-  }();
+
+template <typename... F>
+Compose<F...> compose(F... f) {
+  return Compose<F...>(f...);
 }
-
-*/

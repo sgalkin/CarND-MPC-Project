@@ -1,12 +1,11 @@
 cmake_minimum_required (VERSION 3.5)
 
 enable_language(CXX)
-enable_language(Fortran)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FindPkgConfig)
 
-SET(CMAKE_COLOR_MAKEFILE OFF)
+#SET(CMAKE_COLOR_MAKEFILE OFF)
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -18,24 +17,19 @@ endif()
 add_definitions(-Wall -Wextra -Werror)
 add_definitions(-O3)
 add_definitions(-g)
-add_definitions(-fno-diagnostics-color)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  execute_process(COMMAND brew --prefix openssl
-    OUTPUT_VARIABLE OPENSSL_ROOT_DIR)
-  string(STRIP ${OPENSSL_ROOT_DIR} OPENSSL_ROOT_DIR)
-
-  set(PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH})
-  list(APPEND PKG_CONFIG_PATH "/usr/local/opt/ipopt/lib/pkgconfig")
-  set(ENV{PKG_CONFIG_PATH} ${PKG_CONFIG_PATH})
-endif()
+#if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#  execute_process(COMMAND brew --prefix openssl
+#    OUTPUT_VARIABLE OPENSSL_ROOT_DIR)
+#  string(STRIP ${OPENSSL_ROOT_DIR} OPENSSL_ROOT_DIR)
+#endif()
 
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
+#find_package(OpenSSL REQUIRED)
+#include_directories(${OPENSSL_INCLUDE_DIR})
 
-pkg_search_module(UV REQUIRED libuv)
+#pkg_search_module(UV REQUIRED libuv)
 pkg_search_module(CPPAD REQUIRED cppad)
 pkg_search_module(IPOPT REQUIRED ipopt>=3.12.7)
 include_directories(${IPOPT_INCLUDEDIR}/..)

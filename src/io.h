@@ -1,8 +1,8 @@
 #pragma once
 
+#include <string>
 #include "state.h"
 #include "control.h"
-#include <string>
 
 struct Json {
   State operator()(std::string json);

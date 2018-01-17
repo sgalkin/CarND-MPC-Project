@@ -2,7 +2,9 @@
 #include "state.h"
 #include "control.h"
 
-Control MPC::operator()(State) { return Control{}; }
+Control MPC::operator()(State /*s*/) {
+  return Control(0, 0);
+}
 
 /*
 #include <cppad/cppad.hpp>

@@ -1,4 +1,7 @@
 #include "io.h"
+
+#include <Eigen/Core>
+
 #include "json.hpp"
 #include "state.h"
 #include "control.h"
@@ -15,23 +18,40 @@ json extract(std::string message) {
 }
 }
 
-/*
-{"psi":3.733651,"psi_unity":4.12033,
-    "ptsx":[-32.16173,-43.49173,-61.09,-78.29172,-93.05002,-107.7717],
-    "ptsy":[113.361,105.941,92.88499,78.73102,65.34102,50.57938],
-    "speed":0,
-    "steering_angle":0,
-    "throttle":0,
-    "x":-40.62,
-    "y":108.73}
-*/
-
 State Json::operator()(std::string message) {
   auto j = extract(std::move(message));
-  std::cerr << j.dump() << std::endl;
-  return State();
+  if(j["ptsx"].size() != j["ptsy"].size())
+    throw std::runtime_error("ptsx/ptsy size mismatch");
+
+  double psim = j["psi"].get<double>();
+  double psiu = j["psi_unity"].get<double>();
+  Eigen::MatrixXd wp(j["ptsx"].size(), 2);  
+  wp.col(0) = Eigen::Map<Eigen::VectorXd>(j["ptsx"].get<std::vector<double>>().data(),
+                                          j["ptsx"].size());
+  wp.col(1) = Eigen::Map<Eigen::VectorXd>(j["ptsy"].get<std::vector<double>>().data(),
+                                          j["ptsy"].size());
+  double speed = j["speed"].get<double>();
+  double angle = j["steering_angle"].get<double>();
+  double throttle = j["throttle"].get<double>();
+  Eigen::Vector2d p(j["x"].get<double>(), j["y"].get<double>());
+  
+  return State(psim, psiu, std::move(wp), speed, angle, throttle, std::move(p));
 }
 
-std::string Json::operator()(Control /*control*/) {
-  return "{}";
+std::string Json::operator()(Control c) {
+  json j;
+  j["steering_angle"] = c.angle;
+  j["throttle"] = c.throttle;
+
+  j["mpc_x"] = std::vector<double>(c.prediction.col(0).data(),
+                                   c.prediction.col(0).data() + c.prediction.col(0).size());
+  j["mpc_y"] = std::vector<double>(c.prediction.col(1).data(),
+                                   c.prediction.col(1).data() + c.prediction.col(1).size());
+
+  j["next_x"] = std::vector<double>(c.wp.col(0).data(),
+                                    c.wp.col(0).data() + c.wp.col(0).size());
+  j["next_y"] = std::vector<double>(c.wp.col(1).data(),
+                                    c.wp.col(1).data() + c.wp.col(1).size());
+  std::cerr << j.dump() << std::endl;
+  return j.dump();
 }

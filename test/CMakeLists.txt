@@ -2,10 +2,13 @@ set(TEST_NAME "Test")
 set(test main.cpp)
 
 set(sources
+  ${CMAKE_SOURCE_DIR}/src/io.h
+  ${CMAKE_SOURCE_DIR}/src/io.cpp
   )
 
 set(tests
   polynomial.cpp
+  io.cpp
   )
 
 include_directories(${CMAKE_SOURCE_DIR}/src)

@@ -2,10 +2,20 @@
 
 #include <cstddef>
 #include <utility>
+#include <Eigen/Core>
 
 class State {
 public:
-  State() {}
+  State(double psim, double psiu,
+        Eigen::MatrixXd wp,
+        double speed, double angle, double throttle,
+        Eigen::Vector2d p)
+    : psim(psim), psiu(psiu)
+    , wp(std::move(wp))
+    , speed(speed), angle(angle), throttle(throttle)
+    , p(p)
+  {}
+    
   
   State(const State& s) = default;
   State(State&& s) = default;
@@ -19,6 +29,14 @@ public:
     std::swap(*this, s);
     return *this;
   }
+
+  const double psim;
+  const double psiu;
+  const Eigen::MatrixXd wp;
+  const double speed;
+  const double angle;
+  const double throttle;
+  const Eigen::Vector2d p;
   
 private:
   size_t count_{0};

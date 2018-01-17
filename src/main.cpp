@@ -15,6 +15,7 @@
 #include "state.h"
 
 namespace {
+
 using WSApplication = Application<WSProtocol, Json, Json, Compose<MPC, Count>>;
 
 constexpr uint16_t port = 4567;

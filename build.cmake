@@ -1,16 +1,14 @@
 cmake_minimum_required (VERSION 3.5)
 
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-include(FindPkgConfig)
 
-#SET(CMAKE_COLOR_MAKEFILE OFF)
-SET(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-    message(FATAL_ERROR "GCC version must be at least 4.9!")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
+    message(FATAL_ERROR "GCC version must be at least 5.4!")
   endif()
 endif()
 
@@ -23,6 +21,8 @@ add_definitions(-g)
 #    OUTPUT_VARIABLE OPENSSL_ROOT_DIR)
 #  string(STRIP ${OPENSSL_ROOT_DIR} OPENSSL_ROOT_DIR)
 #endif()
+
+include(FindPkgConfig)
 
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -39,6 +39,8 @@ find_library(UWS_LIB uWS)
 if(NOT UWS_LIB)
   message(FATAL_ERROR "uWS library not found")
 endif()
+
+include_directories(src/Eigen-3.3)
 
 enable_testing()
 add_subdirectory(src)

@@ -6,6 +6,7 @@ set(sources
   application.h
   protocol.h
   protocol.cpp
+  polynomial.h
   io.h
   io.cpp
   state.h

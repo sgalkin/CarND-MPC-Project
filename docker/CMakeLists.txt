@@ -26,7 +26,7 @@ add_custom_target(
 add_custom_target(docker-build
   COMMAND docker exec -ti ${DOCKER_NAME} sh -c \"test -f CMakeCache.txt || cmake /repo\"
   COMMAND docker exec -ti ${DOCKER_NAME} make -j 
-  COMMAND docker exec -ti ${DOCKER_NAME} ctest
+  COMMAND docker exec -ti ${DOCKER_NAME} make test CTEST_OUTPUT_ON_FAILURE=1
   DEPENDS start-docker-env)
 
 add_custom_target(docker-run

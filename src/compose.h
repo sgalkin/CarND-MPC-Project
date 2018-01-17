@@ -5,6 +5,7 @@
 
 template <typename H, typename... T>
 class Compose {
+private:
   H head_;
   Compose<T...> tail_;
 
@@ -21,9 +22,12 @@ public:
   }
 };
 
+
 template <typename F>
 class Compose<F> {
+private:
   F f_;
+
 public:
   explicit Compose(F f = F()) : f_(f) {}
 

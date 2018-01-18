@@ -6,19 +6,22 @@ set(sources
   polynomial.h
   io.h
   io.cpp
-  state.h
+  model.h
   control.h
   mpc.h
   mpc.cpp
   )
 
-add_executable(${CMAKE_PROJECT_NAME} ${sources} ${main})
+add_library(lib${CMAKE_PROJECT_NAME} ${sources})
+add_executable(${CMAKE_PROJECT_NAME} ${main})
 target_link_libraries(${CMAKE_PROJECT_NAME}
+  lib${CMAKE_PROJECT_NAME}
   ${ZLIB_LIBRARIES}
   ${CPPAD_LIBRARIES}
   ${UWS_LIB}
   ${IPOPT_LIBRARIES}
   )
+
 
 set_target_properties(
   ${CMAKE_PROJECT_NAME}

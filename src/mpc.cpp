@@ -1,9 +1,30 @@
 #include "mpc.h"
-#include "state.h"
+
+#include <iostream>
+#include <chrono>
+#include <Eigen/Core>
+
+#include "model.h"
 #include "control.h"
 
-Control MPC::operator()(State /*s*/) {
-  return Control(0, 0);
+namespace {
+Eigen::MatrixXd rotate(const Eigen::Vector2d& p, double psi, Eigen::MatrixXd m) {
+  const auto r = [psi]{
+    Eigen::Matrix2d r;
+    r << cos(psi), sin(psi), -sin(psi), cos(psi);
+    return r.transpose();
+  }();
+  return (m.rowwise() - p.transpose())*r;
+}
+}
+
+State apply(State s, Control a, std::chrono::duration<double> dt);
+
+Control MPC::operator()(Model m) {
+  return Control(0, 0,
+//                 (Eigen::MatrixXd(4,2) << 10,0,20,0,30,0,40,0).finished());
+                 rotate(m.state.p, m.state.psim, m.wp));
+                 //rotate(m.state.p, m.state.psim, m.wp));
 }
 
 /*

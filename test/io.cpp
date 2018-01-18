@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <limits>
+#include <cmath>
 #include <unordered_set>
 #include <iterator>
 #include <Eigen/Core>
@@ -42,15 +43,15 @@ TEST_CASE("Parse") {
   };
   
   Json j;
-  auto s = j(message);
-  REQUIRE(s.psim == Approx(3.733651));
-  REQUIRE(s.psiu == Approx(4.12033));
-  REQUIRE(s.speed == Approx(10));
-  REQUIRE(s.angle == Approx(-0.044));
-  REQUIRE(s.throttle == Approx(0.3));
-  REQUIRE(s.p == Eigen::Vector2d(-40.62, 108.73));
-  REQUIRE(s.wp.col(0) == Eigen::Map<const Eigen::VectorXd>(pts_x.data(), pts_x.size()));
-  REQUIRE(s.wp.col(1) == Eigen::Map<const Eigen::VectorXd>(pts_y.data(), pts_y.size()));
+  auto m = j(message);
+  REQUIRE(m.state.psim == Approx(M_PI/M_PI*180*3.733651/180));
+  REQUIRE(m.state.psiu == Approx(M_PI/M_PI*180*4.12033/180));
+  REQUIRE(m.state.speed == Approx(10));
+  REQUIRE(m.actuator.angle == Approx(-0.044));
+  REQUIRE(m.actuator.throttle == Approx(0.3));
+  REQUIRE(m.state.p == Eigen::Vector2d(-40.62, 108.73));
+  REQUIRE(m.wp.col(0) == Eigen::Map<const Eigen::VectorXd>(pts_x.data(), pts_x.size()));
+  REQUIRE(m.wp.col(1) == Eigen::Map<const Eigen::VectorXd>(pts_y.data(), pts_y.size()));
 }
 
 TEST_CASE("Compose") {

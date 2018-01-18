@@ -1,9 +1,10 @@
 #include "io.h"
 
+#include <cmath>
 #include <Eigen/Core>
 
 #include "json.hpp"
-#include "state.h"
+#include "model.h"
 #include "control.h"
 
 using json = nlohmann::json;
@@ -16,15 +17,25 @@ json extract(std::string message) {
   }
   return j[1];
 }
+/*
+double radian(double degree) {
+  return degree*M_PI/180.;
+}
+*/
+/*
+double degree(double radian) {
+  return radian*180./M_PI;
+}
+*/
 }
 
-State Json::operator()(std::string message) {
+Model Json::operator()(std::string message) {
   auto j = extract(std::move(message));
   if(j["ptsx"].size() != j["ptsy"].size())
     throw std::runtime_error("ptsx/ptsy size mismatch");
 
-  double psim = j["psi"].get<double>();
-  double psiu = j["psi_unity"].get<double>();
+  double psim = /*radian*/(j["psi"].get<double>());
+  double psiu = /*radian*/(j["psi_unity"].get<double>());
   Eigen::MatrixXd wp(j["ptsx"].size(), 2);  
   wp.col(0) = Eigen::Map<Eigen::VectorXd>(j["ptsx"].get<std::vector<double>>().data(),
                                           j["ptsx"].size());
@@ -35,7 +46,9 @@ State Json::operator()(std::string message) {
   double throttle = j["throttle"].get<double>();
   Eigen::Vector2d p(j["x"].get<double>(), j["y"].get<double>());
   
-  return State(psim, psiu, std::move(wp), speed, angle, throttle, std::move(p));
+  return Model(std::move(wp),
+               State(psim, psiu, speed, std::move(p)),
+               Control(angle, throttle));
 }
 
 std::string Json::operator()(Control c) {
@@ -52,6 +65,5 @@ std::string Json::operator()(Control c) {
                                     c.wp.col(0).data() + c.wp.col(0).size());
   j["next_y"] = std::vector<double>(c.wp.col(1).data(),
                                     c.wp.col(1).data() + c.wp.col(1).size());
-  std::cerr << j.dump() << std::endl;
   return j.dump();
 }

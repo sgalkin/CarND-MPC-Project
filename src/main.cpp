@@ -14,7 +14,7 @@
 #include "mpc.h"
 
 namespace {
-using WSApplication = Application<WSProtocol, Json, Json, Compose<MPC, Count>>;
+using WSApplication = Application<WSProtocol, Json, Json, Compose<MPC, Count<Model>>>;
 
 constexpr uint16_t port = 4567;
 constexpr std::chrono::milliseconds delay(100);

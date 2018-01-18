@@ -1,8 +1,5 @@
 set(main main.cpp)
 set(sources
-  json.hpp
-  ProgramOptions.hxx
-
   application.h
   protocol.h
   protocol.cpp

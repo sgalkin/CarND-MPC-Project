@@ -28,7 +28,8 @@ if(NOT UWS_LIB)
   message(FATAL_ERROR "uWS library not found")
 endif()
 
-include_directories(src/Eigen-3.3)
+include_directories(thirdparty)
+include_directories(thirdparty/Eigen-3.3)
 
 include(CTest)
 enable_testing()

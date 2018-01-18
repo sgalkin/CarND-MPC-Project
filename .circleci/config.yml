@@ -12,7 +12,7 @@ jobs:
           command: |  
             cmake -DCMAKE_BUILD_TYPE=Release .
             cmake --build . -- -j
-            ctest
+            ctest --output-on-failure
   coverage:
     <<: *defaults
     steps:
@@ -21,8 +21,8 @@ jobs:
           command: |
             cmake -DCMAKE_BUILD_TYPE=Coverage .
             cmake --build . -- -j
-            make coverage
-            bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+            cmake --build . --target coverage
+            curl -s https://codecov.io/bash | bash
 
 workflows:
   version: 2

@@ -146,7 +146,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
 		# Capturing lcov counters and generating report
 		COMMAND ${LCOV_PATH} --directory . --capture --output-file ${coverage_info}
-		COMMAND ${LCOV_PATH} --remove ${coverage_info} 'tests/*' '/usr/*' --output-file ${coverage_cleaned}
+		COMMAND ${LCOV_PATH} --remove ${coverage_info} 'test/*' 'thirdparty/*' '/usr/*' --output-file ${coverage_cleaned}
 		COMMAND ${GENHTML_PATH} -o ${_outputname} ${coverage_cleaned}
 		COMMAND ${CMAKE_COMMAND} -E remove ${coverage_info} ${coverage_cleaned}
 
@@ -183,7 +183,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE_COBERTURA _targetname _testrunner _outputname
 		${_testrunner} ${ARGV3}
 
 		# Running gcovr
-		COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -e '${CMAKE_SOURCE_DIR}/tests/'  -o ${_outputname}.xml
+		COMMAND ${GCOVR_PATH} -x -r ${CMAKE_SOURCE_DIR} -e '${CMAKE_SOURCE_DIR}/test/' -e '${CMAKE_SOURCE_DIR}/thirdparty/' -o ${_outputname}.xml
 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 		COMMENT "Running gcovr to produce Cobertura code coverage report."
 	)

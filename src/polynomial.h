@@ -17,7 +17,7 @@ Eigen::Matrix<double, T::RowsAtCompileTime, M> powers(const T& x) {
 }
 
 template<typename T, typename U>
-void ensureCompatibleVector(const T& x, const U& y) {
+bool ensureCompatibleVector(const T& x, const U& y) {
   static_assert(T::RowsAtCompileTime == U::RowsAtCompileTime,
                 "x and y should have same number of rows");
   static_assert(T::ColsAtCompileTime == U::ColsAtCompileTime,
@@ -25,9 +25,13 @@ void ensureCompatibleVector(const T& x, const U& y) {
   static_assert(T::ColsAtCompileTime == 1 ||
                 T::ColsAtCompileTime == Eigen::Dynamic,
                 "x and y should be vectors");
-  assert(x.rows() == y.rows());
-  assert(x.cols() == y.cols());
-  assert(x.cols() == 1);
+  bool rows = x.rows() == y.rows();
+  bool cols = x.cols() == y.cols();
+  bool vector = x.cols() == 1;
+  assert(rows);
+  assert(cols);
+  assert(vector);
+  return rows && cols && vector;
 }
 
 // Fit a polynomial.

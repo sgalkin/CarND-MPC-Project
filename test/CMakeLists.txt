@@ -16,3 +16,8 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(${TEST_NAME} ${tests} ${sources} ${test})
 add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+  include(CodeCoverage)
+  setup_target_for_coverage(coverage ${TEST_NAME} coverage)
+endif()

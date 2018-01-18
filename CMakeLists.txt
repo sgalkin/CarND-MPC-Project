@@ -1,8 +1,21 @@
 project(mpc)
 cmake_minimum_required(VERSION 2.8)
 
+find_program(DOCKER_PATH docker)
+
 option(DOCKER_BUILD "enables docker build" OFF)
-option(LOCAL_BUILD "enables local build" ON)
+option(LOCAL_BUILD "enables local build" OFF)
+
+if(NOT DOCKER_PATH)
+  if(DOCKER_BUILD)
+    message(FATAL_ERROR "Docker not found but DOCKER_BUILD is set")
+  endif()
+  if(NOT LOCAL_BUILD)
+    set(LOCAL_BUILD ON)
+  endif()
+else(DOCKER_PATH)
+  set(DOCKER_BUILD ON)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 if(${DOCKER_BUILD})

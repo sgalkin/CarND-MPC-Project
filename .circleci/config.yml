@@ -10,8 +10,8 @@ jobs:
       - checkout
       - run:
           command: |  
-            cmake -DCMAKE_BUILD_TYPE=Release .
-            cmake --build . -- -j
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .
+            cmake --build .
             ctest --output-on-failure
   coverage:
     <<: *defaults
@@ -19,8 +19,7 @@ jobs:
       - checkout
       - run:
           command: |
-            cmake -DCMAKE_BUILD_TYPE=Coverage .
-            cmake --build . -- -j
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Coverage .
             cmake --build . --target coverage
             curl -s https://codecov.io/bash | bash
 

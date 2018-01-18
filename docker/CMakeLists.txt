@@ -24,9 +24,9 @@ add_custom_target(
 
 
 add_custom_target(docker-build
-  COMMAND docker exec -ti ${DOCKER_NAME} sh -c \"test -f CMakeCache.txt || cmake /repo\"
-  COMMAND docker exec -ti ${DOCKER_NAME} make -j 
-  COMMAND docker exec -ti ${DOCKER_NAME} make test CTEST_OUTPUT_ON_FAILURE=1
+  COMMAND docker exec -ti ${DOCKER_NAME} sh -c \"test -f CMakeCache.txt || cmake /repo -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -GNinja\"
+  COMMAND docker exec -ti ${DOCKER_NAME} cmake --build . 
+  COMMAND docker exec -ti ${DOCKER_NAME} ctest --output-on-failure
   DEPENDS start-docker-env)
 
 add_custom_target(docker-run

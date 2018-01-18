@@ -11,9 +11,9 @@ if(CMAKE_COMPILER_IS_GNUCXX AND
   message(FATAL_ERROR "GCC version must be at least 5.4!")
 endif()
 
-add_definitions(-Wall -Wextra -Werror)
-add_definitions(-O3)
-add_definitions(-g)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 include(FindPkgConfig)
 find_package(Threads REQUIRED)
@@ -35,9 +35,3 @@ include(CTest)
 enable_testing()
 add_subdirectory(src)
 add_subdirectory(test)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-  message(INFO "coverage build")
-  include(CodeCoverage)
-  setup_target_for_coverage(coverage Test coverage)
-endif()

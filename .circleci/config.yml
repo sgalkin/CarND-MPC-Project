@@ -1,21 +1,32 @@
+defaults: &defaults
+  docker:
+    - image: sgalkin/carnd-t2-build:latest
+
 version: 2
 jobs:
   build:
-    docker:
-      - image: sgalkin/carnd-t2-build:latest
+    <<: *defaults
     steps:
       - checkout
       - run:
           command: |  
-            echo "Building project"
-            mkdir -p build
-            cd build
-            cmake ..
-            make -j
-            make test
+            cmake -DCMAKE_BUILD_TYPE=Release .
+            cmake --build . -- -j
+            ctest
+  coverage:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          command: |
+            cmake -DCMAKE_BUILD_TYPE=Coverage .
+            cmake --build . -- -j
+            make coverage
+            bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
 workflows:
   version: 2
   build:
     jobs:
       - build
+      - coverage

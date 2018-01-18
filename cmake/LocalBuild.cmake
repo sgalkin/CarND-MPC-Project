@@ -6,30 +6,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
-    message(FATAL_ERROR "GCC version must be at least 5.4!")
-  endif()
+if(CMAKE_COMPILER_IS_GNUCXX AND
+   CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
+  message(FATAL_ERROR "GCC version must be at least 5.4!")
 endif()
 
 add_definitions(-Wall -Wextra -Werror)
 add_definitions(-O3)
 add_definitions(-g)
 
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#  execute_process(COMMAND brew --prefix openssl
-#    OUTPUT_VARIABLE OPENSSL_ROOT_DIR)
-#  string(STRIP ${OPENSSL_ROOT_DIR} OPENSSL_ROOT_DIR)
-#endif()
-
 include(FindPkgConfig)
-
 find_package(Threads REQUIRED)
 find_package(ZLIB REQUIRED)
-#find_package(OpenSSL REQUIRED)
-#include_directories(${OPENSSL_INCLUDE_DIR})
-
-#pkg_search_module(UV REQUIRED libuv)
 pkg_search_module(CPPAD REQUIRED cppad)
 pkg_search_module(IPOPT REQUIRED ipopt>=3.12.7)
 include_directories(${IPOPT_INCLUDEDIR}/..)
@@ -42,6 +30,13 @@ endif()
 
 include_directories(src/Eigen-3.3)
 
+include(CTest)
 enable_testing()
 add_subdirectory(src)
 add_subdirectory(test)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+  message(INFO "coverage build")
+  include(CodeCoverage)
+  setup_target_for_coverage(coverage Test coverage)
+endif()

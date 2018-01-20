@@ -4,6 +4,8 @@ set(DOCKER_NAME cmake-${CMAKE_PROJECT_NAME}-env)
 set(DOCKER_MOUNT -v ${CMAKE_SOURCE_DIR}:/repo:ro)
 set(DOCKER_NETWORK -p4567:4567)
 set(DOCKER_RUN docker run --rm -d -ti ${DOCKER_MOUNT} ${DOCKER_NETWORK} --name ${DOCKER_NAME} ${DOCKER_IMAGE})
+set(DOCKER_TERM -e TERM='$ENV{TERM}')
+set(DOCKER_EXEC docker exec -ti ${DOCKER_TERM})
 
 add_custom_target(
   build-docker-env
@@ -22,17 +24,20 @@ add_custom_target(
 add_custom_target(
   stop-docker-env docker stop ${DOCKER_NAME})
 
+add_custom_target(docker-clean
+  COMMAND ${DOCKER_EXEC} ${DOCKER_NAME} cmake --build . --target clean
+  DEPENDS start-docker-env)
 
 add_custom_target(docker-build
-  COMMAND docker exec -ti ${DOCKER_NAME} sh -c \"test -f CMakeCache.txt || cmake /repo -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -GNinja\"
-  COMMAND docker exec -ti ${DOCKER_NAME} cmake --build . 
-  COMMAND docker exec -ti ${DOCKER_NAME} ctest --output-on-failure
+  COMMAND ${DOCKER_EXEC} ${DOCKER_NAME} sh -c \"test -f CMakeCache.txt || cmake /repo -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -GNinja\"
+  COMMAND ${DOCKER_EXEC} ${DOCKER_NAME} cmake --build . 
+  COMMAND ${DOCKER_EXEC} ${DOCKER_NAME} ctest --output-on-failure
   DEPENDS start-docker-env)
 
 add_custom_target(docker-run
-  COMMAND docker exec -ti ${DOCKER_NAME} ./${CMAKE_PROJECT_NAME}
+  COMMAND ${DOCKER_EXEC} ${DOCKER_NAME} ./${CMAKE_PROJECT_NAME}
   DEPENDS docker-build)
 
 add_custom_target(docker-shell
-  COMMAND docker exec -ti ${DOCKER_NAME} bash
+  COMMAND ${DOCKER_EXEC} -ti ${DOCKER_NAME} bash
   DEPENDS start-docker-env)

@@ -6,7 +6,4 @@ EXPOSE 4567
 RUN mkdir /buils
 WORKDIR /build
 
-ENV TERM=dumb
-
 CMD bash
-#CMD cmake /repo && make -j && ctest

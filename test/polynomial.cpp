@@ -35,4 +35,18 @@ TEST_CASE("Polynomial") {
     for(int i = 0; i < px.rows(); ++i)
       REQUIRE(px(i, 0) == Approx(xy(i, 1)));
   }
+
+  SECTION("Derive") {
+    constexpr size_t n = 3;
+    Polynomial<n>::C c; c << 1, 2, 3, 4; // 1 + 2x + 3x^2 + 4x^3
+    auto d = derive(Polynomial<n>(std::move(c)));
+    REQUIRE(d.c == (Polynomial<n-1>::C() << 2, 6, 12).finished());
+  }
+
+  SECTION("Derive Constant") {
+    constexpr size_t n = 0;
+    Polynomial<n>::C c; c << 4; // 4
+    auto d = derive(Polynomial<n>(std::move(c)));
+    REQUIRE(d.c == (Polynomial<n>::C() << 0).finished());
+  }
 }

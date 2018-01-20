@@ -1,15 +1,22 @@
 set(main main.cpp)
 set(sources
   application.h
-  protocol.h
-  protocol.cpp
-  polynomial.h
+  compose.h
+  control.h
+  state.h
+  model.h
+  model.cpp
   io.h
   io.cpp
-  model.h
-  control.h
+  protocol.h
+  protocol.cpp
+  processor.h
+  processor.cpp
+  polynomial.h
   mpc.h
   mpc.cpp
+  drive.h
+  drive.cpp
   )
 
 add_library(lib${CMAKE_PROJECT_NAME} ${sources})
@@ -21,7 +28,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
   ${UWS_LIB}
   ${IPOPT_LIBRARIES}
   )
-
 
 set_target_properties(
   ${CMAKE_PROJECT_NAME}

@@ -6,31 +6,30 @@
 
 #include "model.h"
 #include "control.h"
+#include "polynomial.h"
 
 namespace {
-Eigen::MatrixXd rotate(const Eigen::Vector2d& p, double psi, Eigen::MatrixXd m) {
-  const auto r = [psi]{
-    Eigen::Matrix2d r;
-    r << cos(psi), sin(psi), -sin(psi), cos(psi);
-    return r.transpose();
-  }();
-  return (m.rowwise() - p.transpose())*r;
+  constexpr size_t degree{3};
+  constexpr size_t N{10};
+  constexpr std::chrono::duration<double> dt{0.3};
 }
-}
-
-State apply(State s, Control a, std::chrono::duration<double> dt);
 
 Control MPC::operator()(Model m) {
+  auto poly = Polynomial<degree>(std::move(m.wp));
+  Eigen::MatrixXd xy(10, 2);
+  xy.col(0) = Eigen::VectorXd::LinSpaced(10, 5, 30);
+  xy.col(1) = poly(xy.col(0));
   return Control(0, 0,
 //                 (Eigen::MatrixXd(4,2) << 10,0,20,0,30,0,40,0).finished());
-                 rotate(m.state.p, m.state.psim, m.wp));
+                 xy,
+                 m.wp);
+//                 rotate(m.state.p, m.state.psim, m.wp));
                  //rotate(m.state.p, m.state.psim, m.wp));
 }
 
 /*
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
-#include "Eigen-3.3/Eigen/Core"
 
 using CppAD::AD;
 
@@ -38,17 +37,6 @@ using CppAD::AD;
 size_t N = 0;
 double dt = 0;
 
-// This value assumes the model presented in the classroom is used.
-//
-// It was obtained by measuring the radius formed by running the vehicle in the
-// simulator around in a circle with a constant steering angle and velocity on a
-// flat terrain.
-//
-// Lf was tuned until the the radius formed by the simulating the model
-// presented in the classroom matched the previous radius.
-//
-// This is the length from front to CoG that has a similar radius.
-//constexpr double Lf = 2.67;
 
 class FG_eval {
  public:
@@ -59,17 +47,13 @@ class FG_eval {
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
   void operator()(ADvector& / *fg* /, const ADvector& / *vars* /) {
     // TODO: implement MPC
-    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
+    // `fg` a vector of the cost constraints, 
+    // `vars` is a vector of variable values (state & actuators)
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
   }
 };
 
-//
-// MPC class definition implementation.
-//
-MPC::MPC() {}
-MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd / *state* /, Eigen::VectorXd coeffs) {
   bool ok = true;

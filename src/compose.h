@@ -11,7 +11,7 @@ private:
 
 public:
   Compose() : head_(H()), tail_(T()...) {}  
-  explicit Compose(H h, T... t) : head_(h), tail_(t...) {}
+  Compose(H h, T... t) : head_(h), tail_(t...) {}
 
   template <typename... Args>
   auto operator() (Args&&... args) ->
@@ -29,7 +29,7 @@ private:
   F f_;
 
 public:
-  explicit Compose(F f = F()) : f_(f) {}
+  Compose(F f = F()) : f_(f) {}
 
   template <typename... Args>
   auto operator() (Args&&... args) ->

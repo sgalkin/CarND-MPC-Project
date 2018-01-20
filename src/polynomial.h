@@ -50,24 +50,23 @@ Eigen::Matrix<double, P+1, 1> fit(const T& x, const U& y) {
 
 
 template<size_t P>
-class Polynomial {
-  static_assert(P > 0, "P > 0 required");
+struct Polynomial {
+  static_assert(P >= 0, "P > 0 required");
 
-public:
   using C = Eigen::Matrix<double, P + 1, 1>;
 
   explicit Polynomial(C c)
-    : c_(std::move(c))
+    : c(std::move(c))
   {}
 
   template<typename T, typename U>
   Polynomial(const T& x, const U& y)
-    : c_(details::fit<P, T, U>(x, y))
+    : c(details::fit<P, T, U>(x, y))
   {}
 
   template<typename T>
-  Polynomial(const T& xy)
-    : c_(details::fit<P>(xy.col(0), xy.col(1))) {
+  explicit Polynomial(const T& xy)
+    : c(details::fit<P>(xy.col(0), xy.col(1))) {
     static_assert(T::ColsAtCompileTime == 2 ||
                   T::ColsAtCompileTime == Eigen::Dynamic,
                   "xy should have two columns");
@@ -80,9 +79,20 @@ public:
 
   template<typename T>
   Eigen::Matrix<double, T::RowsAtCompileTime, 1> operator()(const T& x) const {
-    return details::powers<P, T>(x) * c_;
+    return details::powers<P, T>(x) * c;
   }
 
-private:
-  C c_;
+  const C c;
 };
+
+template<size_t P>
+Polynomial<P-1> derive(const Polynomial<P>& p) {
+  typename Polynomial<P-1>::C c{
+    Polynomial<P-1>::C::LinSpaced(P, 1, P).array() * p.c.block(1, 0, P, 1).array()
+  };
+  return Polynomial<P-1>(std::move(c));
+}
+
+Polynomial<0> derive(const Polynomial<0>&) {
+  return Polynomial<0>((Polynomial<0>::C() << 0).finished());
+}

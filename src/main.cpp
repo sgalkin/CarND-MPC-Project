@@ -9,23 +9,30 @@
 
 #include "application.h"
 #include "protocol.h"
+#include "processor.h"
 #include "compose.h"
+#include "model.h"
 #include "io.h"
 #include "mpc.h"
 
 namespace {
-using WSApplication = Application<WSProtocol, Json, Json, Compose<MPC, Count<Model>>>;
+using Pipeline = Compose<MPC, Rotate, Delay, Count<Model>>;
+using WSApplication = Application<WSProtocol, Json, Json, Pipeline>;
 
 constexpr uint16_t port = 4567;
 constexpr std::chrono::milliseconds delay(100);
 
+Pipeline pipeline(std::chrono::milliseconds delay) {
+  return Pipeline{MPC{}, Rotate{}, Delay{std::move(delay)}, Count<Model>{}};
+}
+  
 po::parser parser() {
   po::parser p;
   p["help"].abbreviation('h').description("print this help screen")
     .callback([&p]{ std::cerr << p << '\n'; exit(1); });
   return p;
 }
-
+  
 void run(po::parser /*p*/) {
 //  auto config = ::config(p);
   std::unique_ptr<WSApplication> app;
@@ -53,7 +60,7 @@ void run(po::parser /*p*/) {
   });
 
   h.onConnection([&app/*, config*/](uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest) {
-    app.reset(new WSApplication(/*config*/));
+    app.reset(new WSApplication(pipeline(delay)));
   });
 
   h.onDisconnection([&app](uWS::WebSocket<uWS::SERVER>, int, char*, size_t) {

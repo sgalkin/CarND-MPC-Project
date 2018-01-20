@@ -2,15 +2,19 @@
 
 #include <string>
 
-template<typename Protocol, typename Reader, typename Writer, typename Processor>
+template<typename Protocol, typename Reader, typename Writer, typename Pipeline>
 class Application {
 public:
+  explicit Application(Pipeline pipeline) :
+    pipeline_(std::move(pipeline))
+  {}
+  
   std::string ProcessMessage(std::string message) {
     auto payload = Protocol::getPayload(std::move(message));
     if(payload.empty()) return Protocol::formatResponse();
 
-    auto state = reader_(std::move(payload));
-    auto control = processor_(std::move(state));
+    auto model = reader_(std::move(payload));
+    auto control = pipeline_(std::move(model));
     auto reply = writer_(std::move(control));
     return Protocol::formatResponse(std::move(reply));
   }
@@ -18,5 +22,5 @@ public:
 private:
   Reader reader_;
   Writer writer_;
-  Processor processor_;
+  Pipeline pipeline_;
 };

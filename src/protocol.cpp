@@ -4,6 +4,10 @@
 #include <stdexcept>
 
 namespace {
+  static const size_t _coverage = 0;
+}
+
+namespace {
 bool checkHeader(const std::string& request) {
   // "42" at the start of the message means there's a websocket message event.
   // The 4 signifies a websocket message. The 2 signifies a websocket event

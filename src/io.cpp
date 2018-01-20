@@ -7,6 +7,10 @@
 #include "model.h"
 #include "control.h"
 
+namespace {
+  static const size_t _coverage = 0;
+}
+
 using json = nlohmann::json;
 
 namespace {
@@ -17,6 +21,18 @@ json extract(std::string message) {
   }
   return j[1];
 }
+
+template<typename T>
+std::vector<typename T::Scalar> to_vector(const T& src) {
+  static_assert(T::RowsAtCompileTime == 1 || T::ColsAtCompileTime == 1, "src is not a vector");
+  assert(src.rows() == 1 || src.cols() == 1);
+  return std::vector<typename T::Scalar>{ src.data(), src.data() + src.size() };
+}
+
+Eigen::VectorXd to_vector(std::vector<double>&& v) {
+  return Eigen::Map<Eigen::VectorXd>(v.data(), v.size());
+}
+  
 /*
 double radian(double degree) {
   return degree*M_PI/180.;
@@ -34,20 +50,19 @@ Model Json::operator()(std::string message) {
   if(j["ptsx"].size() != j["ptsy"].size())
     throw std::runtime_error("ptsx/ptsy size mismatch");
 
-  double psim = /*radian*/(j["psi"].get<double>());
-  double psiu = /*radian*/(j["psi_unity"].get<double>());
-  Eigen::MatrixXd wp(j["ptsx"].size(), 2);  
-  wp.col(0) = Eigen::Map<Eigen::VectorXd>(j["ptsx"].get<std::vector<double>>().data(),
-                                          j["ptsx"].size());
-  wp.col(1) = Eigen::Map<Eigen::VectorXd>(j["ptsy"].get<std::vector<double>>().data(),
-                                          j["ptsy"].size());
+  double psim = j["psi"].get<double>();
+//  double psiu = j["psi_unity"].get<double>();
+  Eigen::MatrixXd wp(j["ptsx"].size(), 2);
+  wp.col(State::X) = to_vector(j["ptsx"]);
+  wp.col(State::Y) = to_vector(j["ptsy"]);
+
   double speed = j["speed"].get<double>();
   double angle = j["steering_angle"].get<double>();
   double throttle = j["throttle"].get<double>();
   Eigen::Vector2d p(j["x"].get<double>(), j["y"].get<double>());
   
   return Model(std::move(wp),
-               State(psim, psiu, speed, std::move(p)),
+               State(psim, /*psiu,*/ speed, std::move(p)),
                Control(angle, throttle));
 }
 
@@ -56,14 +71,10 @@ std::string Json::operator()(Control c) {
   j["steering_angle"] = c.angle;
   j["throttle"] = c.throttle;
 
-  j["mpc_x"] = std::vector<double>(c.prediction.col(0).data(),
-                                   c.prediction.col(0).data() + c.prediction.col(0).size());
-  j["mpc_y"] = std::vector<double>(c.prediction.col(1).data(),
-                                   c.prediction.col(1).data() + c.prediction.col(1).size());
-
-  j["next_x"] = std::vector<double>(c.wp.col(0).data(),
-                                    c.wp.col(0).data() + c.wp.col(0).size());
-  j["next_y"] = std::vector<double>(c.wp.col(1).data(),
-                                    c.wp.col(1).data() + c.wp.col(1).size());
+  j["mpc_x"] = to_vector(c.prediction.col(State::X));
+  j["mpc_y"] = to_vector(c.prediction.col(State::Y));
+   
+  j["next_x"] = to_vector(c.wp.col(State::X));
+  j["next_y"] = to_vector(c.wp.col(State::Y));
   return j.dump();
 }

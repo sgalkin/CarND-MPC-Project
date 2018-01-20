@@ -9,6 +9,10 @@
 #include "polynomial.h"
 
 namespace {
+  static const size_t _coverage = 0;
+}
+
+namespace {
   constexpr size_t degree{3};
   constexpr size_t N{10};
   constexpr std::chrono::duration<double> dt{0.3};

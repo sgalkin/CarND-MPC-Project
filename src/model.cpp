@@ -1,5 +1,9 @@
 #include "model.h"
 
+namespace {
+  static const size_t _coverage = 0;
+}
+
 Model::Model(Eigen::MatrixXd wp, State state, Control actuator)
   : wp(std::move(wp))
   , state(std::move(state))

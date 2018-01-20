@@ -45,7 +45,7 @@ TEST_CASE("Parse") {
   Json j;
   auto m = j(message);
   REQUIRE(m.state.psim == Approx(M_PI/M_PI*180*3.733651/180));
-  REQUIRE(m.state.psiu == Approx(M_PI/M_PI*180*4.12033/180));
+//  REQUIRE(m.state.psiu == Approx(M_PI/M_PI*180*4.12033/180));
   REQUIRE(m.state.speed == Approx(10));
   REQUIRE(m.actuator.angle == Approx(-0.044));
   REQUIRE(m.actuator.throttle == Approx(0.3));

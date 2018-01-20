@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 
 struct Control {
+  enum Index { A = 0, D, Count };
   Control(double angle, double throttle,
           Eigen::MatrixXd prediction = Eigen::MatrixXd(0, 2),
           Eigen::MatrixXd wp = Eigen::MatrixXd(0, 2))

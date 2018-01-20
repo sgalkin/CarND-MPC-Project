@@ -15,6 +15,5 @@ target_link_libraries(${TEST_NAME} lib${CMAKE_PROJECT_NAME})
 add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-  include(CodeCoverage)
-  setup_target_for_coverage(coverage ${TEST_NAME} coverage)
+  include(EnableCoverage)
 endif()

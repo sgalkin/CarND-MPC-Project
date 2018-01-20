@@ -22,7 +22,7 @@ jobs:
             cmake -G Ninja -DCMAKE_BUILD_TYPE=Coverage .
             cmake --build .
             ctest --output-on-failure
-            curl -s https://codecov.io/bash | bash
+            bash <(curl -s https://codecov.io/bash)
 
 workflows:
   version: 2

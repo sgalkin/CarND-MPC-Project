@@ -2,15 +2,17 @@ set(TEST_NAME "Test")
 
 set(sources
   main.cpp
-  polynomial.cpp
-  io.cpp
+  test_polynomial.cpp
+  test_io.cpp
+  test_mpc.cpp
+  test_solve.cpp
   )
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(${TEST_NAME} ${sources})
 add_dependencies(${TEST_NAME} lib${CMAKE_PROJECT_NAME})
-target_link_libraries(${TEST_NAME} lib${CMAKE_PROJECT_NAME})
+target_link_libraries(${TEST_NAME} lib${CMAKE_PROJECT_NAME} ${IPOPT_LIBRARIES})
 
 add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 

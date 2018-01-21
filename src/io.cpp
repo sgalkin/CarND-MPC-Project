@@ -7,10 +7,6 @@
 #include "model.h"
 #include "control.h"
 
-namespace {
-  static const size_t _coverage = 0;
-}
-
 using json = nlohmann::json;
 
 namespace {

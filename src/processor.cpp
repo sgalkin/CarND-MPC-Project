@@ -4,10 +4,6 @@
 #include "drive.h"
 
 namespace {
-  static const size_t _coverage = 0;
-}
-
-namespace {
 Eigen::Matrix2d rotation(double psi) {
   return (Eigen::Matrix2d() <<  cos(psi), -sin(psi),
                                 sin(psi),  cos(psi)

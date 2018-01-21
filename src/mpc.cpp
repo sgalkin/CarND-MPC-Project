@@ -3,62 +3,116 @@
 #include <iostream>
 #include <chrono>
 #include <Eigen/Core>
+#include <cppad/cppad.hpp>
 
 #include "model.h"
 #include "control.h"
 #include "polynomial.h"
+#include "solve.h"
 
 namespace {
-  static const size_t _coverage = 0;
-}
+constexpr size_t degree{3};
 
-namespace {
-  constexpr size_t degree{3};
-  constexpr size_t N{10};
-  constexpr std::chrono::duration<double> dt{0.3};
+class Objective {
+public:
+  using Dvector = Eigen::VectorXd;
+  using ADvector = Eigen::Matrix<CppAD::AD<double>, Eigen::Dynamic, 1>;
+
+  Objective(size_t vars, size_t consts, Polynomial<degree> poly)
+    : vars_(vars)
+    , consts_(consts)
+    , poly_(std::move(poly))
+    , derivative_(derive(poly_))
+  {}
+  
+  ADvector::value_type cost(const ADvector& x) const {
+    assert(x.size() == (int)vars_);
+    return x[0] * x[0] - x[0];
+  }
+
+  ADvector constraints(const ADvector& ) const {
+    ADvector v(consts_);
+    return v;
+  }
+
+  Dvector init() const {
+    return Dvector::Zero(vars_);
+  }
+
+  std::tuple<Dvector, Dvector> vbounds() const {
+    Dvector lb = Dvector::Constant(vars_, -std::numeric_limits<double>::infinity());
+    Dvector ub = Dvector::Constant(vars_, std::numeric_limits<double>::infinity());
+    return std::make_tuple(std::move(lb), std::move(ub));
+  }
+
+  std::tuple<Dvector, Dvector> cbounds() const {
+    Dvector lb = Dvector::Constant(consts_, -std::numeric_limits<double>::infinity());
+    Dvector ub = Dvector::Constant(consts_, std::numeric_limits<double>::infinity());
+    return std::make_tuple(std::move(lb), std::move(ub));
+  }
+
+  static std::string options() {
+    static const std::string o = [] {
+      std::string o;
+      // turn off any printing
+      o += "Integer print_level  0\n";
+      o += "String  sb           yes\n";
+  
+      // maximum number of iterations
+      o += "Integer max_iter     10\n";
+      o += "Numeric tol          1e-6\n";
+
+      // derivative testing
+      o += "String  derivative_test none\n";
+      // maximum amount of random pertubation; e.g., when evaluation finite diff
+      o += "Numeric point_perturbation_radius  0.\n";
+
+      // NOTE: Setting sparse to true allows the solver to take advantage
+      // of sparse routines, this makes the computation MUCH FASTER. If you
+      // can uncomment 1 of these and see if it makes a difference or not but
+      // if you uncomment both the computation time should go up in orders of
+      // magnitude.
+      //o += "Sparse  true        forward\n";
+      o += "Sparse  true        reverse\n";
+
+      // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
+      // Change this as you see fit.
+      o += "Numeric max_cpu_time          0.25\n";
+      return o;
+    }();
+    return o;
+  }
+
+private:
+  const size_t vars_;
+  const size_t consts_;
+  const Polynomial<degree> poly_;
+  const std::result_of<decltype(&derive<degree>)(const Polynomial<degree>&)>::type derivative_;
+};
 }
 
 Control MPC::operator()(Model m) {
   auto poly = Polynomial<degree>(std::move(m.wp));
-  Eigen::MatrixXd xy(10, 2);
-  xy.col(0) = Eigen::VectorXd::LinSpaced(10, 5, 30);
-  xy.col(1) = poly(xy.col(0));
+  
+  Eigen::MatrixXd waypoints(10, 2);
+  waypoints.col(State::X) = Eigen::VectorXd::LinSpaced(10, -5, 50);
+  waypoints.col(State::Y) = poly(waypoints.col(State::X));
+
+  size_t Vars = 6;
+  size_t Actuators = 2;
+  
+  auto solution = solve(Objective(N*Vars + (N - 1)*Actuators, N*Vars, std::move(poly)));
+  if(solution.status != decltype(solution)::success) {
+    std::cerr << "Failed to find solution for step " << m.count() << "\n";
+  }
+  std::cout << "Cost " << solution.obj_value << "\n";
+    
   return Control(0, 0,
-//                 (Eigen::MatrixXd(4,2) << 10,0,20,0,30,0,40,0).finished());
-                 xy,
-                 m.wp);
-//                 rotate(m.state.p, m.state.psim, m.wp));
-                 //rotate(m.state.p, m.state.psim, m.wp));
+                 Eigen::MatrixXd(0, 2),
+                 waypoints);
 }
 
 /*
-#include <cppad/cppad.hpp>
-#include <cppad/ipopt/solve.hpp>
-
-using CppAD::AD;
-
-// TODO: Set the timestep length and duration
-size_t N = 0;
-double dt = 0;
-
-
-class FG_eval {
- public:
-  // Fitted polynomial coefficients
-  Eigen::VectorXd coeffs;
-  FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
-
-  typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
-  void operator()(ADvector& / *fg* /, const ADvector& / *vars* /) {
-    // TODO: implement MPC
-    // `fg` a vector of the cost constraints, 
-    // `vars` is a vector of variable values (state & actuators)
-    // NOTE: You'll probably go back and forth between this function and
-    // the Solver function below.
-  }
-};
-
-
 vector<double> MPC::Solve(Eigen::VectorXd / *state* /, Eigen::VectorXd coeffs) {
   bool ok = true;
   //size_t i;
@@ -93,41 +147,7 @@ vector<double> MPC::Solve(Eigen::VectorXd / *state* /, Eigen::VectorXd coeffs) {
     constraints_upperbound[i] = 0;
   }
 
-  // object that computes objective and constraints
-  FG_eval fg_eval(coeffs);
 
-  //
-  // NOTE: You don't have to worry about these options
-  //
-  // options for IPOPT solver
-  std::string options;
-  // Uncomment this if you'd like more print information
-  options += "Integer print_level  0\n";
-  // NOTE: Setting sparse to true allows the solver to take advantage
-  // of sparse routines, this makes the computation MUCH FASTER. If you
-  // can uncomment 1 of these and see if it makes a difference or not but
-  // if you uncomment both the computation time should go up in orders of
-  // magnitude.
-  options += "Sparse  true        forward\n";
-  options += "Sparse  true        reverse\n";
-  // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
-  // Change this as you see fit.
-  options += "Numeric max_cpu_time          0.5\n";
-
-  // place to return solution
-  CppAD::ipopt::solve_result<Dvector> solution;
-
-  // solve the problem
-  CppAD::ipopt::solve<Dvector, FG_eval>(
-      options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
-      constraints_upperbound, fg_eval, solution);
-
-  // Check some of the solution values
-  ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
-
-  // Cost
-  auto cost = solution.obj_value;
-  std::cout << "Cost " << cost << std::endl;
 
   // TODO: Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.

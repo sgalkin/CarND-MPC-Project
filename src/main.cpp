@@ -22,8 +22,11 @@ using WSApplication = Application<WSProtocol, Json, Json, Pipeline>;
 constexpr uint16_t port = 4567;
 constexpr std::chrono::milliseconds delay(100);
 
+constexpr size_t N{10};
+constexpr std::chrono::duration<double> dt{0.3};
+  
 Pipeline pipeline(std::chrono::milliseconds delay) {
-  return Pipeline{MPC{}, Rotate{}, Delay{std::move(delay)}, Count<Model>{}};
+  return Pipeline{MPC{N, dt}, Rotate{}, Delay{std::move(delay)}, Count<Model>{}};
 }
   
 po::parser parser() {

@@ -1,10 +1,6 @@
 #include "drive.h"
 
 namespace {
-  static const size_t _coverage = 0;
-}
-
-namespace {
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the

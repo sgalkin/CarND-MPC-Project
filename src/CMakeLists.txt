@@ -13,6 +13,7 @@ set(sources
   processor.h
   processor.cpp
   polynomial.h
+  solve.h
   mpc.h
   mpc.cpp
   drive.h

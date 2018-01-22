@@ -93,6 +93,6 @@ Polynomial<P-1> derive(const Polynomial<P>& p) {
   return Polynomial<P-1>(std::move(c));
 }
 
-Polynomial<0> derive(const Polynomial<0>&) {
+inline Polynomial<0> derive(const Polynomial<0>&) {
   return Polynomial<0>((Polynomial<0>::C() << 0).finished());
 }

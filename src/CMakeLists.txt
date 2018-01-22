@@ -22,10 +22,9 @@ set(sources
   util.h
   )
 
-add_library(lib${CMAKE_PROJECT_NAME} ${sources})
-add_executable(${CMAKE_PROJECT_NAME} ${main})
-target_link_libraries(${CMAKE_PROJECT_NAME}
-  lib${CMAKE_PROJECT_NAME}
+add_library(lib${CMAKE_PROJECT_NAME} OBJECT ${sources})
+add_executable(${CMAKE_PROJECT_NAME} ${main} $<TARGET_OBJECTS:lib${CMAKE_PROJECT_NAME}>)
+target_link_libraries(${CMAKE_PROJECT_NAME}  
   ${ZLIB_LIBRARIES}
   ${CPPAD_LIBRARIES}
   ${UWS_LIB}

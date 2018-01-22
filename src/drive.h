@@ -1,8 +1,6 @@
 #pragma once
 
 namespace drive {
-template<typename T>
-struct D {
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -13,7 +11,10 @@ struct D {
 // presented in the classroom matched the previous radius.
 //
 // This is the length from front to CoG that has a similar radius.
-  static constexpr double Lf = 2.67;
+constexpr double Lf = 2.67;
+
+template<typename T>
+struct D {
 
   explicit D(double dt) : dt(dt) {}
 

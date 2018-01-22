@@ -16,12 +16,20 @@ Eigen::MatrixXd rotate(Eigen::MatrixXd m, double psi, const Eigen::Vector2d& p) 
 }
 
 
-Model Rotate::operator()(Model m) const {
-  auto rwp = rotate(std::move(m.wp), m.state.psim, m.state.p);
-  return Model(std::move(rwp), std::move(m.state), std::move(m.actuator));
+State Rotate::operator()(State s) const {
+  auto rwp = rotate(std::move(s.wp), s.psi, s.p);
+  return State(s.psi, s.v, s.p, std::move(s.current), std::move(rwp));
 }
 
-Model Delay::operator()(Model m) const {
-  auto s = drive(std::move(m.state), m.actuator, delay_); 
-  return Model(std::move(m), std::move(s));
+
+State Delay::operator()(State s) const {
+  auto D = drive::D<double>(delay_.count());
+  return State{
+    s.psi + D.psi(s.v, s.current.angle),
+//    s.psiu + s.speed/Lf*c.angle*dt.count(),
+    s.v + D.v(s.current.throttle),
+    s.p + (Eigen::Vector2d() << D.x(s.psi, s.v), D.y(s.psi, s.v)).finished(),
+    std::move(s.current),
+    std::move(s.wp)  
+  };
 }

@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <utility>
 #include <chrono>
-#include "model.h"
+#include "state.h"
 
 template<typename T>
 class Count {
@@ -17,7 +17,7 @@ private:
 };
 
 struct Rotate {
-  Model operator()(Model m) const;
+  State operator()(State m) const;
 };
 
 using Interval = std::chrono::duration<double>;
@@ -28,7 +28,7 @@ public:
     delay_(std::chrono::duration_cast<Interval>(delay))
   {}
   
-  Model operator()(Model m) const;
+  State operator()(State m) const;
   
 private:
   Interval delay_;

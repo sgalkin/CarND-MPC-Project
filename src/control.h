@@ -1,12 +1,14 @@
 #pragma once
 
 #include <Eigen/Core>
+#include "util.h"
 
 struct Control {
-  enum Index { A = 0, D, Count };
+  static constexpr size_t dimensions = 2;
+  
   Control(double angle, double throttle,
-          Eigen::MatrixXd prediction = Eigen::MatrixXd(0, 2),
-          Eigen::MatrixXd wp = Eigen::MatrixXd(0, 2))
+          Eigen::MatrixXd prediction = Eigen::MatrixXd(0, int(Axis::Plain)),
+          Eigen::MatrixXd wp = Eigen::MatrixXd(0, int(Axis::Plain)))
     : angle(angle), throttle(throttle)
     , prediction(std::move(prediction))
     , wp(std::move(wp))

@@ -44,14 +44,14 @@ TEST_CASE("Parse") {
   
   Json j;
   auto m = j(message);
-  REQUIRE(m.state.psim == Approx(3.733651));
+  REQUIRE(m.psi == Approx(3.733651));
 //  REQUIRE(m.state.psiu == Approx(4.12033));
-  REQUIRE(m.state.speed == Approx(10));
-  REQUIRE(m.actuator.angle == Approx(-0.044));
-  REQUIRE(m.actuator.throttle == Approx(0.3));
-  REQUIRE(m.state.p == Eigen::Vector2d(-40.62, 108.73));
-  REQUIRE(m.wp.col(0) == Eigen::Map<const Eigen::VectorXd>(pts_x.data(), pts_x.size()));
-  REQUIRE(m.wp.col(1) == Eigen::Map<const Eigen::VectorXd>(pts_y.data(), pts_y.size()));
+  REQUIRE(m.v == Approx(10));
+  REQUIRE(m.p == Eigen::Vector2d(-40.62, 108.73));
+  REQUIRE(m.current.angle == Approx(-0.044));
+  REQUIRE(m.current.throttle == Approx(0.3));
+  REQUIRE(m.wp.col(Axis::X) == Eigen::Map<const Eigen::VectorXd>(pts_x.data(), pts_x.size()));
+  REQUIRE(m.wp.col(Axis::Y) == Eigen::Map<const Eigen::VectorXd>(pts_y.data(), pts_y.size()));
 }
 
 TEST_CASE("Compose") {

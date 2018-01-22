@@ -1,18 +1,19 @@
 #pragma once
 
 #include <chrono>
-#include "model.h"
+#include "state.h"
 #include "control.h"
 
 class MPC {
 public:
   using Interval = std::chrono::duration<double>;
   
-  MPC(size_t N, Interval dt)
-    : N(N), dt(std::move(dt))
+  template<typename D>
+  MPC(size_t N, D dt)
+    : N(N), dt(std::chrono::duration_cast<Interval>(dt))
   {}
     
-  Control operator()(Model s);
+  Control operator()(State s);
   
 private:
   size_t N;

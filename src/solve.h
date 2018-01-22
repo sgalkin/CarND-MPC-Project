@@ -9,12 +9,12 @@ struct DefaultOptions {
     static const std::string o = [] {
       std::string o;
       // turn off any printing
-      o += "Integer print_level                 0\n";
+      o += "Integer print_level                 5\n";
       o += "String  sb                          yes\n";
   
       // maximum number of iterations
-      o += "Integer max_iter                    10\n";
-      o += "Numeric tol                         1e-6\n";
+      //o += "Integer max_iter                    10\n";
+      //o += "Numeric tol                         1e-6\n";
 
       // derivative testing
       o += "String  derivative_test             none\n";
@@ -28,11 +28,11 @@ struct DefaultOptions {
       // if you uncomment both the computation time should go up in orders of
       // magnitude.
       //o += "Sparse true        forward\n";
-      o += "Sparse  true                        reverse\n";
+      //o += "Sparse  true                        reverse\n";
 
       // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
       // Change this as you see fit.
-      o += "Numeric max_cpu_time                0.25\n";
+      //o += "Numeric max_cpu_time                0.25\n";
       return o;
     }();
     return o;

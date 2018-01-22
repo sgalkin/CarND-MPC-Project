@@ -3,21 +3,23 @@ set(sources
   application.h
   compose.h
   control.h
-  state.h
-  model.h
-  model.cpp
-  io.h
-  io.cpp
-  protocol.h
-  protocol.cpp
-  processor.h
-  processor.cpp
-  polynomial.h
-  solve.h
-  mpc.h
-  mpc.cpp
+#  drive.cpp
   drive.h
-  drive.cpp
+  io.cpp
+  io.h
+  model.cpp
+  model.h
+  mpc.cpp
+  mpc.h
+  polynomial.h
+  processor.cpp
+  processor.h
+  protocol.cpp
+  protocol.h
+  solve.h
+  solve_traits.h
+  state.h
+  util.h
   )
 
 add_library(lib${CMAKE_PROJECT_NAME} ${sources})

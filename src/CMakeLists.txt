@@ -7,7 +7,7 @@ set(sources
   drive.h
   io.cpp
   io.h
-  model.cpp
+#  model.cpp
   model.h
   mpc.cpp
   mpc.h

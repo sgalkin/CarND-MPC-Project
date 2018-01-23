@@ -39,5 +39,5 @@ add_custom_target(docker-run
   DEPENDS docker-build)
 
 add_custom_target(docker-shell
-  COMMAND ${DOCKER_EXEC} -ti ${DOCKER_NAME} bash
+  COMMAND ${DOCKER_EXEC} -ti ${DOCKER_TERM} ${DOCKER_NAME} bash
   DEPENDS start-docker-env)

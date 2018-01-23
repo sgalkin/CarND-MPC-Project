@@ -9,8 +9,8 @@ struct DefaultOptions {
     static const std::string o = [] {
       std::string o;
       // turn off any printing
-      o += "Integer print_level                 5\n";
-      o += "String  sb                          yes\n";
+      o += "Integer print_level                 0\n";
+      o += "String  sb                          no\n";
   
       // maximum number of iterations
       //o += "Integer max_iter                    10\n";
@@ -27,7 +27,7 @@ struct DefaultOptions {
       // can uncomment 1 of these and see if it makes a difference or not but
       // if you uncomment both the computation time should go up in orders of
       // magnitude.
-      //o += "Sparse true        forward\n";
+      o += "Sparse true        forward\n";
       //o += "Sparse  true                        reverse\n";
 
       // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.

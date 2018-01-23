@@ -48,10 +48,9 @@ Eigen::Matrix<double, P+1, 1> fit(const T& x, const U& y) {
 }
 }
 
-
 template<size_t P>
 struct Polynomial {
-  static_assert(P >= 0, "P > 0 required");
+  static_assert(P >= 0, "P >= 0 required");
 
   using C = Eigen::Matrix<double, P + 1, 1>;
 
@@ -73,13 +72,14 @@ struct Polynomial {
     assert(xy.cols() == 2);
   }
 
+//  template<typename S>
   double operator()(double x) const {
     return this->operator()((Eigen::Matrix<double, 1, 1>() << x).finished())(0);
   }
 
-  template<typename T>
-  Eigen::Matrix<double, T::RowsAtCompileTime, 1> operator()(const T& x) const {
-    return details::powers<P, T>(x) * c;
+  template<template<typename T> class V, typename S>
+  Eigen::Matrix<typename V<S>::Scalar, V<S>::RowsAtCompileTime, 1> operator()(const V<S>& x) const {
+    return details::powers<P>(x) * c;
   }
 
   const C c;

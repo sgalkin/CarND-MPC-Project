@@ -6,6 +6,7 @@ set(sources
   test_io.cpp
   test_mpc.cpp
   test_solve.cpp
+  test_model.cpp
   )
 
 include_directories(${CMAKE_SOURCE_DIR}/src)

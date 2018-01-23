@@ -18,6 +18,6 @@ Control MPC::operator()(State s) {
   waypoints.col(Axis::X) = Eigen::VectorXd::LinSpaced(10, -5, 50);
   waypoints.col(Axis::Y) = poly(waypoints.col(Axis::X));
 
-  auto c = create_model<degree>(std::move(s), std::move(poly), N, dt.count()).solve();
-  return Control(c.angle, c.throttle, std::move(c.prediction), waypoints);
+  auto r = create_model<degree>(std::move(s), std::move(poly), N, dt.count()).solve();
+  return Control(r.current.angle, r.current.throttle, std::move(r.current.prediction), waypoints);
 }

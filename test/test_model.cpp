@@ -1,29 +1,45 @@
 #include "catch.hpp"
+
+#include <iostream>
 #include "model.h"
+#include "util.h"
 
 TEST_CASE("Model") {
-  size_t N = 25;
-  double dt = 0.05;
-  size_t iters = 50;
+  constexpr size_t degree = 1;
+  constexpr size_t N = 25;
+  constexpr double dt = 0.05;
 
-  Eigen::VectorXd ptsx(2);
-  Eigen::VectorXd ptsy(2);
-  ptsx << -100, 100;
-  ptsy << -1, -1;
+  auto pts = (Eigen::VectorXd(2, Axis::Plain) << -100, -1,
+                                                  100,  1).finished();
 
-  // The polynomial is fitted to a straight line so a polynomial with
-  // order 1 is sufficient.
-  Polynomial<1> c(ptsx, ptsy);
+  auto c = Polynomial<degree>(std::move(pts));
 
-  // NOTE: free feel to play around with these
-  double x = -1;
-  double y = 10;
-  double psi = 0;
-  double v = 10;
-  State s(psi, v, (Eigen::Vector2d() << x, y).finished(), Control(0,0), Eigen::MatrixXd());
-  for (size_t i = 0; i < iters; i++) {
-    std::cout << "Iteration " << i << std::endl;
+  constexpr double psi = 0;
+  constexpr double v = 10;
+  const auto xy = (Eigen::Vector2d() << -1, 10).finished();
 
-    auto vars = Model<1>(s, c, N, dt).solve();
+  SECTION("01 iteration") {
+    State init(psi, v, xy, Control(0, 0));
+    auto r = model::solve(std::move(init), c, N, dt);
+    REQUIRE(r.p(Axis::X) == Approx(-0.5));
+    REQUIRE(r.p(Axis::Y) == Approx(10));
+    REQUIRE(r.psi == Approx(-0.0817101));
+    REQUIRE(r.v == Approx(10.05));
+    REQUIRE(r.current.angle == Approx(-0.436332));
+    REQUIRE(r.current.throttle == Approx(1));
+  }
+
+  SECTION("50 iterations") {
+    constexpr size_t iters = 50;
+    State state(psi, v, xy, Control(0, 0));
+    for (size_t i = 0; i < iters; ++i) {
+      new(&state)State{model::solve(std::move(state), c, N, dt)};
+    }
+    REQUIRE(state.p(Axis::X) == Approx(21.1792));
+    REQUIRE(state.p(Axis::Y) == Approx(-0.997072));
+    REQUIRE(state.psi == Approx(0.000309515));
+    REQUIRE(state.v == Approx(12.5));
+    REQUIRE(state.current.angle == Approx(-0.0038108));
+    REQUIRE(state.current.throttle == Approx(1));
   }
 }

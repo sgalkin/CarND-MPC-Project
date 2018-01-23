@@ -36,6 +36,24 @@ TEST_CASE("Polynomial") {
       REQUIRE(px(i, 0) == Approx(xy(i, 1)));
   }
 
+  SECTION("Evaluate static") {
+    auto xy = (Eigen::Matrix<double, 8, 1>() << 1, 2, 3, 4, 5, 6, 7, 8).finished();
+    auto p = Polynomial<1>{(Eigen::Matrix<double, 2, 1>() << 0, 1).finished()};
+    REQUIRE(p(xy) == xy);
+  }
+
+  SECTION("Evaluate dynamic") {
+    auto xy = (Eigen::VectorXd(8) << 1, 2, 3, 4, 5, 6, 7, 8).finished();
+    auto p = Polynomial<1>{(Eigen::Matrix<double, 2, 1>() << 0, 1).finished()};
+    REQUIRE(p(xy) == xy);
+  }
+
+  SECTION("Evaluate scalar") {
+    auto xy = double{42};
+    auto p = Polynomial<1>{(Eigen::Matrix<double, 2, 1>() << 0, 1).finished()};
+    REQUIRE(p(xy) == xy);
+  }
+  
   SECTION("Derive") {
     constexpr size_t n = 3;
     Polynomial<n>::C c; c << 1, 2, 3, 4; // 1 + 2x + 3x^2 + 4x^3

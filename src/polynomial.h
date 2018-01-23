@@ -1,15 +1,16 @@
 #pragma once
 
 #include <utility>
+#include <type_traits>
 #include <Eigen/Core>
 #include <Eigen/QR>
+#include "util.h"
 
 namespace details {
-template<size_t P, typename T, int M=T::RowsAtCompileTime==Eigen::Dynamic ? Eigen::Dynamic : P+1>
-Eigen::Matrix<double, T::RowsAtCompileTime, M> powers(const T& x) {
-  static_assert(M == Eigen::Dynamic || M == P + 1, "Invalid number of columns");
-  
-  using Result = Eigen::Matrix<double, T::RowsAtCompileTime, M>;
+template<size_t P, typename D,
+         typename Result=typename Eigen::Matrix<typename D::Scalar, D::RowsAtCompileTime, P+1>>
+  Result powers(const Eigen::MatrixBase<D>& x) {
+  static_assert(D::ColsAtCompileTime == 1, "x is not a vector"); 
   Result R = Result::Constant(x.size(), P + 1, 1);
   for(size_t i = 1; i <= P; ++i)
     R.col(i) = R.col(i-1).array() * x.array();
@@ -20,18 +21,11 @@ template<typename T, typename U>
 bool ensureCompatibleVector(const T& x, const U& y) {
   static_assert(T::RowsAtCompileTime == U::RowsAtCompileTime,
                 "x and y should have same number of rows");
-  static_assert(T::ColsAtCompileTime == U::ColsAtCompileTime,
-                "x and y should have same number of cols");
-  static_assert(T::ColsAtCompileTime == 1 ||
-                T::ColsAtCompileTime == Eigen::Dynamic,
-                "x and y should be vectors");
+  static_assert(T::ColsAtCompileTime == 1, "x should be vectors");
+  static_assert(U::ColsAtCompileTime == 1, "y should be vectors");
   bool rows = x.rows() == y.rows();
-  bool cols = x.cols() == y.cols();
-  bool vector = x.cols() == 1;
   assert(rows);
-  assert(cols);
-  assert(vector);
-  return rows && cols && vector;
+  return rows;
 }
 
 // Fit a polynomial.
@@ -39,7 +33,7 @@ bool ensureCompatibleVector(const T& x, const U& y) {
 // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
 template<size_t P, typename T, typename U>
 Eigen::Matrix<double, P+1, 1> fit(const T& x, const U& y) {
-  static_assert(P > 0, "P > 0 required");
+  static_assert(P >= 0, "P >= 0 required");
   ensureCompatibleVector(x, y);
   
   assert(P < (unsigned)x.size());
@@ -65,20 +59,29 @@ struct Polynomial {
 
   template<typename T>
   explicit Polynomial(const T& xy)
-    : c(details::fit<P>(xy.col(0), xy.col(1))) {
+    : c(details::fit<P>(xy.col(Axis::X), xy.col(Axis::Y))) {
     static_assert(T::ColsAtCompileTime == 2 ||
                   T::ColsAtCompileTime == Eigen::Dynamic,
                   "xy should have two columns");
     assert(xy.cols() == 2);
   }
 
-//  template<typename S>
-  double operator()(double x) const {
-    return this->operator()((Eigen::Matrix<double, 1, 1>() << x).finished())(0);
+  template<typename S,
+           typename = typename std::enable_if<!std::is_base_of<Eigen::EigenBase<S>, S>::value>::type>
+  S operator()(S x) const {
+    S v = 0;
+    S p = 1;
+    for(size_t i = 0; i <= P; ++i) {
+      v += c[i] * p;
+      p *= x;
+    }
+    return v;
   }
 
-  template<template<typename T> class V, typename S>
-  Eigen::Matrix<typename V<S>::Scalar, V<S>::RowsAtCompileTime, 1> operator()(const V<S>& x) const {
+  template<typename D>
+  typename Eigen::Matrix<typename D::Scalar, D::RowsAtCompileTime, 1>
+  operator()(const typename Eigen::MatrixBase<D>& x) const {
+    static_assert(D::ColsAtCompileTime == 1, "x not a vector");
     return details::powers<P>(x) * c;
   }
 

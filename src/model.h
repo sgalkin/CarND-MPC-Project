@@ -204,7 +204,7 @@ public:
     if(solution.status != decltype(solution)::success) {
       std::cerr << "Failed to find solution\n";
     }
-    std::cout << "Cost " << solution.obj_value << "\n";
+    std::cout << "Cost: " << solution.obj_value << "\n";
 
     Eigen::MatrixXd prediction(idx.depth, int(Axis::Plain));
     for(size_t i = 0; i < idx.depth; ++i) {

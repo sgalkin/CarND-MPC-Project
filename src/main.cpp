@@ -15,17 +15,17 @@
 #include "mpc.h"
 
 namespace {
-using Pipeline = Compose<MPC, Rotate, Delay>;
+using Pipeline = Compose<MPC>;//, Rotate, Delay>;
 using WSApplication = Application<WSProtocol, Json, Json, Pipeline>;
 
 constexpr uint16_t port = 4567;
 constexpr std::chrono::milliseconds delay(100);
 
-constexpr size_t N{10};
-constexpr std::chrono::duration<double> dt{0.3};
+constexpr size_t N{20};
+constexpr std::chrono::duration<double> dt{0.1};
   
-Pipeline pipeline(std::chrono::milliseconds delay) {
-  return Pipeline{MPC{N, dt}, Rotate{}, Delay{std::move(delay)}};
+  Pipeline pipeline(std::chrono::milliseconds /*delay*/) {
+  return Pipeline{MPC{N, dt}};//, Rotate{}, Delay{std::move(delay)}};
 }
   
 po::parser parser() {
@@ -54,7 +54,7 @@ void run(po::parser /*p*/) {
       //
       // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
       // SUBMITTING.
-      std::this_thread::sleep_for(delay);
+      //std::this_thread::sleep_for(delay);
       ws.send(response.data(), response.length(), uWS::OpCode::TEXT);
     } catch(std::runtime_error& e) {
       std::cerr << "Error while processing message: " << e.what() << std::endl;

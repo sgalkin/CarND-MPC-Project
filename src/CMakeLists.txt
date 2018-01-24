@@ -3,11 +3,10 @@ set(sources
   application.h
   compose.h
   control.h
-#  drive.cpp
   drive.h
   io.cpp
   io.h
-#  model.cpp
+  model.cpp
   model.h
   mpc.cpp
   mpc.h

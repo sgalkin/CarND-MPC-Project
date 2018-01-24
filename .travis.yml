@@ -1,0 +1,11 @@
+sudo: required
+
+language: cpp
+
+services:
+  - docker
+
+script:
+  - cmake . -DCMAKE_BUILD_TYPE=Release
+  - cmake --build .
+  - ctest

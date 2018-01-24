@@ -30,6 +30,6 @@ private:
 // presented in the classroom matched the previous radius.
 //
 // This is the length from front to CoG that has a similar radius.
-  static constexpr double Lf = 2.67;
+  const double Lf = 2.67;
 };
 }

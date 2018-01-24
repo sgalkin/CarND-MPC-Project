@@ -2,11 +2,10 @@
 #include <memory>
 #include <stdexcept>
 #include <thread>
-#include <chrono>
 
 #include <uWS/uWS.h>
-#include "ProgramOptions.hxx"
 
+#include "config.h"
 #include "application.h"
 #include "protocol.h"
 #include "processor.h"
@@ -15,36 +14,25 @@
 #include "mpc.h"
 
 namespace {
-using Pipeline = Compose<MPC>;//, Rotate, Delay>;
-using WSApplication = Application<WSProtocol, Json, Json, Pipeline>;
 
-constexpr uint16_t port = 4567;
-constexpr std::chrono::milliseconds delay(100);
+Compose<MPC, Delay, Rotate>
+pipeline(Config c) {
+  return {MPC{c.depth, c.dt}, Delay{c.delay}, Rotate{}}; // applied from right to left
+}
 
-constexpr size_t N{20};
-constexpr std::chrono::duration<double> dt{0.1};
+using WSApplication = Application<WSProtocol, Json, Json,
+                                  std::result_of<decltype(&pipeline)(Config)>::type>;
   
-  Pipeline pipeline(std::chrono::milliseconds /*delay*/) {
-  return Pipeline{MPC{N, dt}};//, Rotate{}, Delay{std::move(delay)}};
-}
-  
-po::parser parser() {
-  po::parser p;
-  p["help"].abbreviation('h').description("print this help screen")
-    .callback([&p]{ std::cerr << p << '\n'; exit(1); });
-  return p;
-}
-  
-void run(po::parser /*p*/) {
-//  auto config = ::config(p);
+void run(Config c) {
+  std::cout << "Using the following config:\n" << c << "\n";
   std::unique_ptr<WSApplication> app;
 
   uWS::Hub h;
-  h.onMessage([&app](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode) {
+  h.onMessage([&app, c](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode) {
     try {
       auto message = std::string(data, length);
       auto response = app->ProcessMessage(std::move(message));
-
+      
       // Latency
       // The purpose is to mimic real driving conditions where
       // the car does actuate the commands instantly.
@@ -54,23 +42,23 @@ void run(po::parser /*p*/) {
       //
       // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
       // SUBMITTING.
-      //std::this_thread::sleep_for(delay);
+      std::this_thread::sleep_for(c.delay);
       ws.send(response.data(), response.length(), uWS::OpCode::TEXT);
     } catch(std::runtime_error& e) {
       std::cerr << "Error while processing message: " << e.what() << std::endl;
     }
   });
 
-  h.onConnection([&app/*, config*/](uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest) {
-    app.reset(new WSApplication(pipeline(delay)));
+  h.onConnection([&app, c](uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest) {
+      app.reset(new WSApplication(pipeline(c)));
   });
 
   h.onDisconnection([&app](uWS::WebSocket<uWS::SERVER>, int, char*, size_t) {
     app.reset();
   });
 
-  if (h.listen(port)) {
-    std::cout << "Listening to port " << port << std::endl;
+  if (h.listen(c.port)) {
+    std::cout << "Listening to port " << c.port << std::endl;
     h.run();
   } else {
     std::cerr << "Failed to listen to port" << std::endl;
@@ -79,11 +67,11 @@ void run(po::parser /*p*/) {
 }
 
 int main(int argc, char* argv[]) {
-  auto parser = ::parser();
-  if(!parser(argc, argv)) {
-    std::cerr << parser << std::endl;
-    return -1;
+  try {
+    run(configure(argc, argv));
+  } catch(std::exception& e) {
+    std::cerr << "Program aborted with error: " << e.what() << std::endl;
+    exit(1);
   }
-  run(std::move(parser));
   return 0;
 }

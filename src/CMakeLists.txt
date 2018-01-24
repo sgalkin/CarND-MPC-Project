@@ -2,6 +2,7 @@ set(main main.cpp)
 set(sources
   application.h
   compose.h
+  config.h
   control.h
   drive.h
   io.cpp

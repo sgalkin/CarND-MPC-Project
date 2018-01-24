@@ -13,7 +13,7 @@ using Vector = Eigen::Matrix<S, Eigen::Dynamic, 1>;
 using Solve = solve_traits<Vector, double>;
 
 enum StateId { PSI = 0, V, X, Y, CTE, EPSI, LastState };
-enum ActuatorId { A = 0, D, LastActuator };
+enum ActuatorId { A = 0, S, LastActuator };
 
 struct Index {
   explicit Index(size_t depth);
@@ -28,25 +28,6 @@ struct Index {
 };
 
 namespace detail {
-class Cost {
-  using ExtraCost = std::function<Solve::ADvector::value_type(Index, const Solve::ADvector&)>;
-public:
-  using ADvector = Solve::ADvector;
-
-  template<typename CostPolicy>
-  explicit Cost(size_t depth, CostPolicy cp)
-    : extra_([cp=std::move(cp)](Index idx, const ADvector& x) {
-        return cp(idx, x);
-      })
-    , idx_{depth}
-  {}
-  ADvector::value_type operator()(const ADvector& x) const;
-  
-private:    
-  const ExtraCost extra_;
-  const Index idx_;
-};
-
 class Constraint {
   using Init = std::function<Solve::Dvector()>;
   using Polynomial = std::function<Solve::ADvector::value_type(Solve::ADvector::value_type)>;
@@ -106,27 +87,23 @@ private:
   const Index idx_;
 };
 
-struct NoExtraCost {
-  Solve::ADvector::value_type operator()(Index, const Solve::ADvector&) const {
-    return 0;
-  }
-};
-  
-struct Unchanged {
-  Solve::Dvector operator()(Index, Solve::Dvector x) const {
-    return x;
-  }
-};
+inline Solve::ADvector::value_type zeroCost(Index, const Solve::ADvector&) { return 0; }
+inline Solve::Dvector unchanged(Index, Solve::Dvector x) { return x; }
+inline void noOutput(Solve::Dvector::value_type, Index, const Solve::Dvector&) {}
 }
 
+void stdOutput(Solve::Dvector::value_type cost, Index idx, const Solve::Dvector& solution);
+
 template<typename Polynomial,
-         typename VariableLowerBoundPolicy=detail::Unchanged,
-         typename VariableUpperBoundPolicy=detail::Unchanged,
-         typename CostPolicy=detail::NoExtraCost>
+         typename VariableLowerBound,//=decltype(&detail::unchanged),
+         typename VariableUpperBound,//=decltype(&detail::unchanged),
+         typename CostFn,//=decltype(&detail::zeroCost),
+         typename Dumper>//=decltype(&detail::noOutput)>
 State solve(State s, Polynomial p, size_t depth, double dt,
-            VariableLowerBoundPolicy vlbp={},
-            VariableUpperBoundPolicy vubp={},
-            CostPolicy cp={}) {
+            VariableLowerBound vlbp=detail::unchanged,
+            VariableUpperBound vubp=detail::unchanged,
+            CostFn cp=detail::zeroCost,
+            Dumper dumper=detail::noOutput) {
   Index idx{depth};
   auto init = [s=std::move(s), p, dp=derive(p), idx]() {
     Solve::Dvector v{idx(LastState, 0)};
@@ -139,17 +116,17 @@ State solve(State s, Polynomial p, size_t depth, double dt,
     return v;
   };
   
-  detail::Cost cost{depth, cp};
   detail::Constraint constraint{init, std::move(p), depth, dt};
   detail::Variable variable{init, depth, vlbp, vubp};
     
-  auto solution = ::solve(cost, constraint, variable);
+  auto solution = ::solve(
+    [idx, cp=std::move(cp)](const Solve::ADvector& x) {
+      return cp(idx, x);
+    }, constraint, variable);
   if(solution.status != decltype(solution)::success) {
     std::cerr << "Failed to find solution\n";
   }
-  std::cout << "Cost: " << solution.obj_value
-            << " D: " << solution.x[idx(D, 0)]
-            << " A: " << solution.x[idx(A, 0)] << "\n";
+  dumper(solution.obj_value, idx, solution.x);
 
   Eigen::MatrixXd prediction(idx.depth, int(Axis::Plain));
   for(size_t i = 0; i < idx.depth; ++i) {
@@ -160,7 +137,7 @@ State solve(State s, Polynomial p, size_t depth, double dt,
                solution.x[idx(V, 1)],
                (Eigen::Vector2d() << solution.x[idx(X, 1)],
                                      solution.x[idx(Y, 1)]).finished(),
-               Control(solution.x[idx(D, 0)],
+               Control(solution.x[idx(S, 0)],
                        solution.x[idx(A, 0)],
                        std::move(prediction)));
 }

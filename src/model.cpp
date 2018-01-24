@@ -1,5 +1,7 @@
 #include "model.h"
 
+#include <iostream>
+#include <iomanip>
 #include <cmath>
 #include "drive.h"
 
@@ -21,28 +23,6 @@ size_t Index::constraints() const {
 }
 
 namespace detail {
-// Cost function
-typename Cost::ADvector::value_type Cost::operator()(const Cost::ADvector& x) const {
-  typename Cost::ADvector::value_type v = 0;
-      
-  for (size_t t = 0; t < idx_.depth; ++t) {
-    v += pow(x[idx_(CTE, t)], 2);
-    v += pow(x[idx_(EPSI, t)], 2);
-  }
-  // Minimize the use of actuators.
-  for (size_t t = 0; t < idx_.depth - 1; ++t) {
-    v += pow(x[idx_(D, t)], 2);
-    v += pow(x[idx_(A, t)], 2);
-  }
-  // Minimize the value gap between sequential actuations.
-  for (size_t t = 0; t < idx_.depth - 2; t++) {
-    v += pow(x[idx_(D, t + 1)] - x[idx_(D, t)], 2);
-    v += pow(x[idx_(A, t + 1)] - x[idx_(A, t)], 2);
-  }
-  return v + extra_(idx_, x);
-}
-
-
 // Constraints
 Constraint::ADvector Constraint::operator()(const Constraint::ADvector& x) const {
   ADvector v = x.block(0, 0, idx_.constraints(), 1);
@@ -55,15 +35,15 @@ Constraint::ADvector Constraint::operator()(const Constraint::ADvector& x) const
     auto iy = idx_(Y, t-1);
     auto iepsi = idx_(EPSI, t-1);
       
-    auto id = idx_(D, t-1);
     auto ia = idx_(A, t-1);
+    auto is = idx_(S, t-1);
       
-    v[idx_(PSI, t)] -= x[ipsi] + d.psi(x[iv], x[id]);
-    v[idx_(V, t)] -= x[iv] + d.v(x[ia]);
-    v[idx_(X, t)] -= x[ix] + d.x(x[ipsi], x[iv]);
-    v[idx_(Y, t)] -= x[iy] + d.y(x[ipsi], x[iv]);
-    v[idx_(CTE, t)] -= p_(x[ix]) - x[iy] + d.y(x[iepsi], x[iv]);
-    v[idx_(EPSI, t)] -= x[ipsi] - atan(dp_(x[ix])) + d.psi(x[iv], x[id]);
+    v[idx_(PSI, t)] -= x[ipsi] - d.psi(drive::D::v(x[iv]), drive::D::s(x[is]));
+    v[idx_(V, t)] -= x[iv] + d.v(drive::D::a(x[ia]));
+    v[idx_(X, t)] -= x[ix] + d.x(drive::D::psi(x[ipsi]), drive::D::v(x[iv]));
+    v[idx_(Y, t)] -= x[iy] + d.y(drive::D::psi(x[ipsi]), drive::D::v(x[iv]));
+    v[idx_(CTE, t)] -= p_(x[ix]) - x[iy] + d.y(drive::D::psi(x[iepsi]), drive::D::v(x[iv]));
+    v[idx_(EPSI, t)] -= x[ipsi] - atan(dp_(x[ix])) - d.psi(drive::D::v(x[iv]), drive::D::s(x[is]));
   }
   return v;
 }
@@ -97,4 +77,12 @@ Variable::Dvector Variable::upper_bound() const {
 }
 
 }
+
+void stdOutput(Solve::Dvector::value_type cost, Index idx, const Solve::Dvector& solution) {
+  std::cout << "Cost: " << std::setw(12) << std::setprecision(6) << std::fixed << cost
+            << " S: " << std::setw(7) << std::setprecision(4) << std::fixed << solution[idx(S, 0)]
+            << " A: " << std::setw(5) << std::setprecision(2) << std::fixed << solution[idx(A, 0)]
+            << "\n"; 
+}
+
 }

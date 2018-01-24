@@ -61,7 +61,7 @@ TEST_CASE("Model") {
   
   SECTION("01 iteration") {
     State init(psi, v, xy, Control(0, 0));
-    auto r = model::solve(std::move(init), c, N, dt, bind(Alb, Slb), bind(Aub, Sub), cost);
+    auto r = model::solve(std::move(init), c, N, dt, cost, bind(Alb, Slb), bind(Aub, Sub));
     REQUIRE(r.p(Axis::X) == Approx(-0.5));
     REQUIRE(r.p(Axis::Y) == Approx(10));
     REQUIRE(r.psi == Approx(-0.0817101));
@@ -76,7 +76,7 @@ TEST_CASE("Model") {
     for (size_t i = 0; i < iters; ++i) {
       // TODO: fix this ugly syntax
       new(&state)State{
-        model::solve(std::move(state), c, N, dt, bind(Alb, Slb), bind(Aub, Sub), cost)
+        model::solve(std::move(state), c, N, dt, cost, bind(Alb, Slb), bind(Aub, Sub))
       };
     }
     REQUIRE(state.p(Axis::X) == Approx(21.1792));

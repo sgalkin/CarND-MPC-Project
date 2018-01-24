@@ -87,25 +87,24 @@ private:
   const Index idx_;
 };
 
-inline Solve::ADvector::value_type zeroCost(Index, const Solve::ADvector&) { return 0; }
 inline Solve::Dvector unchanged(Index, Solve::Dvector x) { return x; }
 inline void noOutput(Solve::Dvector::value_type, Index, const Solve::Dvector&) {}
 }
 
+using Cost = std::function<Solve::ADvector::value_type(Index, const Solve::ADvector&)>;
+using VariableBound = std::function<Solve::Dvector(Index, Solve::Dvector)>;
+using Dumper = std::function<void(Solve::Dvector::value_type, Index, const Solve::Dvector&)>;
+  
 void stdOutput(Solve::Dvector::value_type cost, Index idx, const Solve::Dvector& solution);
 
-template<typename Polynomial,
-         typename VariableLowerBound,//=decltype(&detail::unchanged),
-         typename VariableUpperBound,//=decltype(&detail::unchanged),
-         typename CostFn,//=decltype(&detail::zeroCost),
-         typename Dumper>//=decltype(&detail::noOutput)>
+template<typename Polynomial>
 State solve(State s, Polynomial p, size_t depth, double dt,
-            VariableLowerBound vlbp=detail::unchanged,
-            VariableUpperBound vubp=detail::unchanged,
-            CostFn cp=detail::zeroCost,
+            Cost cost,
+            VariableBound lower=detail::unchanged,
+            VariableBound upper=detail::unchanged,
             Dumper dumper=detail::noOutput) {
   Index idx{depth};
-  auto init = [s=std::move(s), p, dp=derive(p), idx]() {
+  auto init = [s, p, dp=derive(p), idx]() {
     Solve::Dvector v{idx(LastState, 0)};
     v[idx(PSI, 0)] = s.psi;
     v[idx(V, 0)] = s.v;
@@ -117,14 +116,15 @@ State solve(State s, Polynomial p, size_t depth, double dt,
   };
   
   detail::Constraint constraint{init, std::move(p), depth, dt};
-  detail::Variable variable{init, depth, vlbp, vubp};
+  detail::Variable variable{init, depth, std::move(lower), std::move(upper)};
     
   auto solution = ::solve(
-    [idx, cp=std::move(cp)](const Solve::ADvector& x) {
-      return cp(idx, x);
+    [idx, cost=std::move(cost)](const Solve::ADvector& x) {
+      return cost(idx, x);
     }, constraint, variable);
   if(solution.status != decltype(solution)::success) {
     std::cerr << "Failed to find solution\n";
+    return s;
   }
   dumper(solution.obj_value, idx, solution.x);
 

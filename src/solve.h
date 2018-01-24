@@ -32,7 +32,7 @@ struct DefaultOptions {
 
       // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
       // Change this as you see fit.
-      o += "Numeric max_cpu_time                0.25\n";
+      // o += "Numeric max_cpu_time                0.25\n";
       return o;
     }();
     return o;

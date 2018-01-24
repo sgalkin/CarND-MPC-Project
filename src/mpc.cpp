@@ -21,17 +21,18 @@ model::Solve::ADvector::value_type cost(model::Index idx, const model::Solve::AD
   for (size_t t = 0; t < idx.depth; ++t) {
     v += pow(x[idx(model::CTE, t)], 2);
     v += pow(x[idx(model::EPSI, t)], 2);
-    v += pow(x[idx(model::V, t)] - 10, 2);
+    v += pow(x[idx(model::V, t)] - 50, 2);
+//    v += 10/(1e-2 + abs(x[idx(model::V, t)]));
   }
   // Minimize the use of actuators.
   for (size_t t = 0; t < idx.depth - 1; ++t) {
-    v += pow(x[idx(model::A, t)], 2);
+    v += 100*pow(x[idx(model::A, t)], 2);
     v += pow(x[idx(model::S, t)], 2);
   }
   // Minimize the value gap between sequential actuations.
   for (size_t t = 0; t < idx.depth - 2; t++) {
     v += pow(x[idx(model::A, t + 1)] - x[idx(model::A, t)], 2);
-    v += pow(x[idx(model::S, t + 1)] - x[idx(model::S, t)], 2);
+    v += 100*pow(x[idx(model::S, t + 1)] - x[idx(model::S, t)], 2);
   }
   return v;  
 }
@@ -42,7 +43,7 @@ Control MPC::operator()(State s) {
   auto poly = Polynomial<degree>(std::move(s.wp));
   
   Eigen::MatrixXd waypoints(10, 2);
-  waypoints.col(Axis::X) = Eigen::VectorXd::LinSpaced(15, 10, 150);
+  waypoints.col(Axis::X) = Eigen::VectorXd::LinSpaced(10, 5, 80);
   waypoints.col(Axis::Y) = poly(waypoints.col(Axis::X));
 
   auto bind = [](model::Solve::Dvector::value_type a,
@@ -57,7 +58,7 @@ Control MPC::operator()(State s) {
   };
 
   auto r = model::solve(std::move(s), std::move(poly), N, dt.count(),
-                        bind(Alb, Slb), bind(Aub, Sub), cost, model::stdOutput);
+                        cost, bind(Alb, Slb), bind(Aub, Sub), model::stdOutput);
 
   return Control(r.current.angle, r.current.throttle,
                  std::move(r.current.prediction),

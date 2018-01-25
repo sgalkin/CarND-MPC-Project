@@ -1,6 +1,6 @@
 defaults: &defaults
   docker:
-    - image: sgalkin/carnd-t2-build:latest
+    - image: sgalkin/carnd-t2-dev:latest
 
 version: 2
 jobs:

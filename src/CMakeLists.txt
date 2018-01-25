@@ -38,4 +38,4 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 set_target_properties(
   ${CMAKE_PROJECT_NAME}
   PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+  )

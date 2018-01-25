@@ -13,6 +13,7 @@ jobs:
             cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .
             cmake --build .
             ctest --output-on-failure
+            
   coverage:
     <<: *defaults
     steps:
@@ -23,6 +24,7 @@ jobs:
             cmake --build .
             ctest --output-on-failure
             bash <(curl -s https://codecov.io/bash)
+            
   image:
     machine: true
     steps:
@@ -40,11 +42,11 @@ jobs:
 
 workflows:
   version: 2
-  build:
+  ci:
     jobs:
       - build
       - coverage
-      - image
+      - image:
           requires:
             - build
             - coverage

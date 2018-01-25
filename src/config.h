@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+#include <iomanip>
 #include <chrono>
 #include "ProgramOptions.hxx"
   
@@ -10,6 +12,17 @@ struct Config {
   const size_t depth;
   const std::chrono::duration<double> dt;
 
+  Config(int argc, char* argv[])
+    : Config([](int argc, char* argv[]) {
+        auto parser = Config::parser();
+        if(!parser(argc, argv)) {
+          std::cerr << parser << std::endl;
+          throw std::runtime_error("invalid arguments");
+        }
+        return parser;
+      }(argc, argv))
+  {}
+    
   explicit Config(po::parser p)
     : port{uint16_t(p["port"].get().u32)}
     , delay{p["delay"].get().u32}
@@ -23,10 +36,11 @@ struct Config {
 
   static po::parser parser() {
     constexpr uint16_t port = 4567;
+
     constexpr std::chrono::milliseconds delay{100};
 
-    constexpr size_t N{7};
-    constexpr std::chrono::milliseconds dt{100};
+    constexpr size_t depth{8};
+    constexpr std::chrono::milliseconds dt{125};
 
     po::parser p;
     p["help"].abbreviation('h')
@@ -34,8 +48,8 @@ struct Config {
       .callback([&p]{ std::cerr << p << '\n'; exit(1); });
     p["port"].abbreviation('p').type(po::u32).fallback(port)
       .description("Port to use (default: " + std::to_string(port) + ")");
-    p["depth"].abbreviation('N').type(po::u32).fallback(N)
-      .description("Prediction depth (default: " + std::to_string(N) + ")");
+    p["depth"].abbreviation('N').type(po::u32).fallback(depth)
+      .description("Prediction depth (default: " + std::to_string(depth) + ")");
     p["dt"].abbreviation('t').type(po::u32).fallback(dt.count())
       .description("Prediction time step, ms (default: " + std::to_string(dt.count()) + ")");
     p["delay"].abbreviation('d').type(po::u32).fallback(delay.count())
@@ -46,19 +60,11 @@ struct Config {
 
 template<typename OS>
 OS& operator<< (OS& os, const Config& c) {
-  os << "Using the following config:\n"
-     << "\tPort = " << c.port << "\n"
-     << "\tDelay, ms = " << c.delay.count() << "\n"
-     << "\tDepth = " << c.depth << "\n"
-     << "\tdt, s = " << c.dt.count();
+  os << "{"
+     << "\"Port\":" << c.port << ","
+     << "\"Delay\":" << c.delay.count() << ","
+     << "\"Depth\":" << c.depth << ","
+     << "\"dt\":" << std::setprecision(6) << c.dt.count()
+     << "}";
   return os;
-}
-
-inline Config configure(int argc, char* argv[]) {
-  auto parser = Config::parser();
-  if(!parser(argc, argv)) {
-    std::cerr << parser << std::endl;
-    throw std::runtime_error("invalid arguments");
-  }
-  return Config(std::move(parser));
 }

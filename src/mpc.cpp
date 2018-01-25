@@ -10,7 +10,7 @@
 namespace {
 constexpr size_t degree{3};
 
-constexpr double Alb = -0.1;
+constexpr double Alb = -0.05;
 constexpr double Aub = 1;
 
 constexpr double Slb = -18.*M_PI/180.;
@@ -39,20 +39,33 @@ size_t CsvOutput::count_ = 0;
   
 model::Solve::ADvector::value_type cost(model::Index idx, const model::Solve::ADvector& x) {
   model::Solve::ADvector::value_type v = 0;
+  model::Solve::ADvector::value_type mcte = 0;
+  model::Solve::ADvector::value_type mepsi = 0;
+  
   for (size_t t = 0; t < idx.depth; ++t) {
-    v += pow(x[idx(model::CTE, t)], 2);
-    v += pow(x[idx(model::EPSI, t)], 2);
-    v += 160*pow((x[idx(model::V, t)] - Vref)/Vref, 2);
+    auto cte = pow(x[idx(model::CTE, t)], 2);
+    if(mcte < cte) mcte = cte;
+    auto epsi = pow(x[idx(model::EPSI, t)], 2);
+    if(mepsi < epsi) mepsi = epsi;
+    v += cte;
+    v += epsi;
+    v += 128*pow((x[idx(model::V, t)] - Vref)/Vref, 2);
   }
+  
+  // Penalty on maximum deviation from reference
+  v += 128*idx.depth*mcte;
+  v += 64*idx.depth*mepsi;
+  
   // Minimize the use of actuators.
   for (size_t t = 0; t < idx.depth - 1; ++t) {
     v += pow(x[idx(model::A, t)]/(Aub-Alb), 2);
-    v += pow(x[idx(model::S, t)]/(Sub-Slb), 2);
+    v += 64*pow(x[idx(model::S, t)]/(Sub-Slb), 2);
   }
+  
   // Minimize the value gap between sequential actuations.
   for (size_t t = 0; t < idx.depth - 2; t++) {
     v += pow((x[idx(model::A, t + 1)] - x[idx(model::A, t)])/(Aub-Alb), 2);
-    v += 716*pow((x[idx(model::S, t + 1)] - x[idx(model::S, t)])/(Sub-Slb), 2);
+    v += 630*pow((x[idx(model::S, t + 1)] - x[idx(model::S, t)])/(Sub-Slb), 2);
   }
   return v;  
 }

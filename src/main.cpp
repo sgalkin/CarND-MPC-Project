@@ -24,7 +24,7 @@ using WSApplication = Application<WSProtocol, Json, Json,
                                   std::result_of<decltype(&pipeline)(Config)>::type>;
   
 void run(Config c) {
-  std::cout << "Using the following config:\n" << c << "\n";
+  std::cout << "Using the following config: " << c << "\n";
   std::unique_ptr<WSApplication> app;
 
   uWS::Hub h;
@@ -68,7 +68,7 @@ void run(Config c) {
 
 int main(int argc, char* argv[]) {
   try {
-    run(configure(argc, argv));
+    run(Config(argc, argv));
   } catch(std::exception& e) {
     std::cerr << "Program aborted with error: " << e.what() << std::endl;
     exit(1);

@@ -9,6 +9,9 @@ set(sources
   io.h
   model.cpp
   model.h
+  model_index.h
+  model_index.cpp
+  model_output.h
   mpc.cpp
   mpc.h
   polynomial.h
@@ -17,8 +20,9 @@ set(sources
   protocol.cpp
   protocol.h
   solve.h
-  solve_traits.h
+  solve_traits.h  
   state.h
+  stream_holder.h
   util.h
   )
 

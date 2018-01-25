@@ -1,16 +1,17 @@
 #pragma once
 
-#include <iostream>
 #include <iomanip>
 #include <chrono>
 #include "ProgramOptions.hxx"
-  
+
 struct Config {
   const uint16_t port;
   const std::chrono::milliseconds delay;
 
   const size_t depth;
   const std::chrono::duration<double> dt;
+
+  const std::string output;
 
   Config(int argc, char* argv[])
     : Config([](int argc, char* argv[]) {
@@ -32,6 +33,7 @@ struct Config {
         std::chrono::duration<double>>(
           std::chrono::milliseconds(p["dt"].get().u32))
         }
+    , output{p["output"].available() ? p["output"].get().string : ""}
   {}
 
   static po::parser parser() {
@@ -54,6 +56,8 @@ struct Config {
       .description("Prediction time step, ms (default: " + std::to_string(dt.count()) + ")");
     p["delay"].abbreviation('d').type(po::u32).fallback(delay.count())
       .description("Control delay, ms (default: " + std::to_string(delay.count()) + ")");
+    p["output"].abbreviation('o').type(po::string)
+      .description("CSV output");
     return p;
   }
 };

@@ -1,32 +1,16 @@
 #pragma once
 
+#include <iostream>
+#include <iomanip>
 #include <Eigen/Core>
 #include "state.h"
 #include "solve.h"
 #include "solve_traits.h"
 #include "polynomial.h"
+#include "model_index.h"
+#include "model_output.h"
 
 namespace model {
-
-template<typename S>
-using Vector = Eigen::Matrix<S, Eigen::Dynamic, 1>;
-using Solve = solve_traits<Vector, double>;
-
-enum StateId { PSI = 0, V, X, Y, CTE, EPSI, LastState };
-enum ActuatorId { A = 0, S, LastActuator };
-
-struct Index {
-  explicit Index(size_t depth);
-    
-  size_t operator()(StateId s, size_t i) const;
-  size_t operator()(ActuatorId a, size_t i) const;
-
-  size_t variables() const;
-  size_t constraints() const;
-
-  const size_t depth;
-};
-
 namespace detail {
 class Constraint {
   using Init = std::function<Solve::Dvector()>;
@@ -88,21 +72,17 @@ private:
 };
 
 inline Solve::Dvector unchanged(Index, Solve::Dvector x) { return x; }
-inline void noOutput(Solve::Dvector::value_type, Index, const Solve::Dvector&) {}
 }
 
 using Cost = std::function<Solve::ADvector::value_type(Index, const Solve::ADvector&)>;
 using VariableBound = std::function<Solve::Dvector(Index, Solve::Dvector)>;
-using Dumper = std::function<void(Solve::Dvector::value_type, Index, const Solve::Dvector&)>;
   
-void stdOutput(Solve::Dvector::value_type cost, Index idx, const Solve::Dvector& solution);
-
 template<typename Polynomial>
 State solve(State s, Polynomial p, size_t depth, double dt,
             Cost cost,
             VariableBound lower=detail::unchanged,
             VariableBound upper=detail::unchanged,
-            Dumper dumper=detail::noOutput) {
+            const output::Output& out=output::No) {
   Index idx{depth};
   auto init = [s, p, dp=derive(p), idx]() {
     Solve::Dvector v{idx(LastState, 0)};
@@ -126,7 +106,7 @@ State solve(State s, Polynomial p, size_t depth, double dt,
     std::cerr << "Failed to find solution\n";
     return s;
   }
-  dumper(solution.obj_value, idx, solution.x);
+  out(solution.obj_value, idx, solution.x);
 
   Eigen::MatrixXd prediction(idx.depth, int(Axis::Plain));
   for(size_t i = 0; i < idx.depth; ++i) {

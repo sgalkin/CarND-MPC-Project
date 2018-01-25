@@ -17,25 +17,6 @@ constexpr double Slb = -18.*M_PI/180.;
 constexpr double Sub = -Slb;
 
 constexpr double Vref = 80;
-
-class CsvOutput {
-public:
-  void operator()(model::Solve::Dvector::value_type cost,
-                  model::Index idx,
-                  const model::Solve::Dvector& solution) {
-    std::cerr << ++count_ << "," << cost << ","
-              << solution[idx(model::CTE, 1)] << ","
-              << solution[idx(model::EPSI, 1)] << ","
-              << solution[idx(model::V, 1)] << ","
-              << solution[idx(model::PSI, 1)] << ","
-              << solution[idx(model::A, 0)] << ","
-              << solution[idx(model::S, 0)] << "\n";
-  };
-private:
-  static size_t count_;
-};
-
-size_t CsvOutput::count_ = 0;
   
 model::Solve::ADvector::value_type cost(model::Index idx, const model::Solve::ADvector& x) {
   model::Solve::ADvector::value_type v = 0;
@@ -91,7 +72,7 @@ Control MPC::operator()(State s) {
   };
 
   auto r = model::solve(std::move(s), std::move(poly), N, dt.count(),
-                        cost, bind(Alb, Slb), bind(Aub, Sub), CsvOutput{});
+                        cost, bind(Alb, Slb), bind(Aub, Sub), output);
 
   return Control(r.current.angle, r.current.throttle,
                  std::move(r.current.prediction),

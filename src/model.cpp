@@ -1,27 +1,9 @@
 #include "model.h"
 
-#include <iostream>
-#include <iomanip>
 #include <cmath>
 #include "drive.h"
 
 namespace model {
-
-Index::Index(size_t depth) : depth(depth) {}
-size_t Index::operator()(StateId s, size_t i) const {
-  return assert(i < depth), i*int(LastState) + size_t(s);
-}
-size_t Index::operator()(ActuatorId a, size_t i) const {
-  return assert(i < depth - 1), depth*int(LastState) + i*int(LastActuator) + int(a);
-}
-
-size_t Index::variables() const {
-  return this->operator()(LastActuator, depth - 2);
-}
-size_t Index::constraints() const {
-  return this->operator()(LastState, depth - 1);
-}
-
 namespace detail {
 // Constraints
 Constraint::ADvector Constraint::operator()(const Constraint::ADvector& x) const {
@@ -77,12 +59,4 @@ Variable::Dvector Variable::upper_bound() const {
 }
 
 }
-
-void stdOutput(Solve::Dvector::value_type cost, Index idx, const Solve::Dvector& solution) {
-  std::cout << "Cost: " << std::setw(12) << std::setprecision(6) << std::fixed << cost
-            << " S: " << std::setw(7) << std::setprecision(4) << std::fixed << solution[idx(S, 0)]
-            << " A: " << std::setw(5) << std::setprecision(2) << std::fixed << solution[idx(A, 0)]
-            << "\n"; 
-}
-
 }

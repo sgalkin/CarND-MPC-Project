@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -10,14 +11,26 @@
 #include "protocol.h"
 #include "processor.h"
 #include "compose.h"
+#include "stream_holder.h"
 #include "io.h"
 #include "mpc.h"
 
 namespace {
-
+std::unique_ptr<StreamHolder> stream;
+ 
 Compose<MPC, Delay, Rotate>
 pipeline(Config c) {
-  return {MPC{c.depth, c.dt}, Delay{c.delay}, Rotate{}}; // applied from right to left
+  // TODO: support reconfiguration
+  if(!stream) {
+    stream.reset(c.output.empty() ?
+                 new StreamHolder(std::cout) :
+                 new StreamHolder(c.output));
+  }
+  return {
+    MPC{c.depth, c.dt, *stream},
+    Delay{c.delay},
+    Rotate{}
+  }; // applied from right to left
 }
 
 using WSApplication = Application<WSProtocol, Json, Json,
@@ -67,7 +80,8 @@ void run(Config c) {
 }
 
 int main(int argc, char* argv[]) {
-  try {
+  signal(SIGINT, [](int) { stream.reset(); exit(0); });
+  try {    
     run(Config(argc, argv));
   } catch(std::exception& e) {
     std::cerr << "Program aborted with error: " << e.what() << std::endl;

@@ -23,6 +23,20 @@ jobs:
             cmake --build .
             ctest --output-on-failure
             bash <(curl -s https://codecov.io/bash)
+  image:
+    machine: true
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          command: |
+            mkdir build
+            cd build
+            cmake ..
+            make docker-release
+            make docker-push
 
 workflows:
   version: 2
@@ -30,3 +44,11 @@ workflows:
     jobs:
       - build
       - coverage
+      - image
+          requires:
+            - build
+            - coverage
+          filters:
+            branches:
+              only:
+                - master

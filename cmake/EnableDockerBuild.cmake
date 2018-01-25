@@ -54,3 +54,6 @@ add_custom_target(docker-release
   COMMAND docker tag ${DOCKER_RELEASE_IMAGE} ${DOCKER_RELEASE_IMAGE}:`git rev-parse --abbrev-ref HEAD`.`git rev-parse --short HEAD`
   DEPENDS ${CMAKE_BINARY_DIR}/Dockerfile ${CMAKE_SOURCE_DIR}/Dockerfile.in
   SOURCES ${CMAKE_SOURCE_DIR}/Dockerfile.in)
+
+add_custom_target(docker-push
+  COMMAND docker push ${DOCKER_RELEASE_IMAGE})

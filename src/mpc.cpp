@@ -13,32 +13,46 @@ constexpr size_t degree{3};
 constexpr double Alb = -0.1;
 constexpr double Aub = 1;
 
-constexpr double Slb = -25.*M_PI/180.;
+constexpr double Slb = -18.*M_PI/180.;
 constexpr double Sub = -Slb;
 
-constexpr double Vref = 60;
+constexpr double Vref = 80;
 
 class CsvOutput {
-  
+public:
+  void operator()(model::Solve::Dvector::value_type cost,
+                  model::Index idx,
+                  const model::Solve::Dvector& solution) {
+    std::cerr << ++count_ << "," << cost << ","
+              << solution[idx(model::CTE, 1)] << ","
+              << solution[idx(model::EPSI, 1)] << ","
+              << solution[idx(model::V, 1)] << ","
+              << solution[idx(model::PSI, 1)] << ","
+              << solution[idx(model::A, 0)] << ","
+              << solution[idx(model::S, 0)] << "\n";
+  };
+private:
+  static size_t count_;
 };
+
+size_t CsvOutput::count_ = 0;
   
 model::Solve::ADvector::value_type cost(model::Index idx, const model::Solve::ADvector& x) {
   model::Solve::ADvector::value_type v = 0;
   for (size_t t = 0; t < idx.depth; ++t) {
-    v += 100*pow(x[idx(model::CTE, t)], 2);
-    v += 50*pow(x[idx(model::EPSI, t)], 2);
-    v += pow((x[idx(model::V, t)] - Vref)/Vref, 2);
-//    v += 10/(1e-2 + abs(x[idx(model::V, t)]));
+    v += pow(x[idx(model::CTE, t)], 2);
+    v += pow(x[idx(model::EPSI, t)], 2);
+    v += 160*pow((x[idx(model::V, t)] - Vref)/Vref, 2);
   }
   // Minimize the use of actuators.
   for (size_t t = 0; t < idx.depth - 1; ++t) {
-    v += 50*pow(x[idx(model::A, t)], 2);
-    v += 10*pow(x[idx(model::S, t)], 2);
+    v += pow(x[idx(model::A, t)]/(Aub-Alb), 2);
+    v += pow(x[idx(model::S, t)]/(Sub-Slb), 2);
   }
   // Minimize the value gap between sequential actuations.
   for (size_t t = 0; t < idx.depth - 2; t++) {
-    v += 100*pow(x[idx(model::A, t + 1)] - x[idx(model::A, t)], 2);
-    v += 5000*pow(x[idx(model::S, t + 1)] - x[idx(model::S, t)], 2);
+    v += pow((x[idx(model::A, t + 1)] - x[idx(model::A, t)])/(Aub-Alb), 2);
+    v += 716*pow((x[idx(model::S, t + 1)] - x[idx(model::S, t)])/(Sub-Slb), 2);
   }
   return v;  
 }
@@ -64,7 +78,7 @@ Control MPC::operator()(State s) {
   };
 
   auto r = model::solve(std::move(s), std::move(poly), N, dt.count(),
-                        cost, bind(Alb, Slb), bind(Aub, Sub), model::stdOutput);
+                        cost, bind(Alb, Slb), bind(Aub, Sub), CsvOutput{});
 
   return Control(r.current.angle, r.current.throttle,
                  std::move(r.current.prediction),

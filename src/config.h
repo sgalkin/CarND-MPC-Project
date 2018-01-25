@@ -25,8 +25,8 @@ struct Config {
     constexpr uint16_t port = 4567;
     constexpr std::chrono::milliseconds delay{100};
 
-    constexpr size_t N{25};
-    constexpr std::chrono::milliseconds dt{50};
+    constexpr size_t N{7};
+    constexpr std::chrono::milliseconds dt{100};
 
     po::parser p;
     p["help"].abbreviation('h')

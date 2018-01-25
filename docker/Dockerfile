@@ -1,9 +1,8 @@
-FROM sgalkin/carnd-t2-build
+FROM sgalkin/carnd-t2-dev
 VOLUME /repo
 EXPOSE 4567
-#VOLUME /build
 
-RUN mkdir /buils
+RUN mkdir /build
 WORKDIR /build
 
 CMD bash

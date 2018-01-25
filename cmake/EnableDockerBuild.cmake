@@ -1,4 +1,7 @@
 configure_file(${CMAKE_SOURCE_DIR}/Dockerfile.in ${CMAKE_BINARY_DIR}/Dockerfile)
+file(WRITE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}
+  "#/usr/bin/env bash\n\n"
+  "docker run --rm -ti ${DOCKER_NETWORK} ${DOCKER_RELEASE_IMAGE} $@\n")
 
 set(DOCKER_RELEASE_IMAGE sgalkin/carnd-${CMAKE_PROJECT_NAME})
 set(DOCKER_RELEASE_BUILD
@@ -54,8 +57,7 @@ add_custom_target(docker-release
   COMMAND git diff-index --quiet HEAD || (echo "There are uncommited changes. Please commit to continue" && false)
   COMMAND ${DOCKER_RELEASE_BUILD}
   COMMAND docker tag ${DOCKER_RELEASE_IMAGE} ${DOCKER_RELEASE_IMAGE}:${DOCKER_RELEASE_TAG}
-  COMMAND echo "docker run --rm -t ${DOCKER_NETWORK} ${DOCKER_RELEASE_IMAGE} $@" > ${CMAKE_BINARY_DIR}
-  COMMAND chmod 755 ${CMAKE_BINARY_DIR}
+  COMMAND chmod 755 ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}
   DEPENDS ${CMAKE_BINARY_DIR}/Dockerfile ${CMAKE_SOURCE_DIR}/Dockerfile.in
   SOURCES ${CMAKE_SOURCE_DIR}/Dockerfile.in)
 

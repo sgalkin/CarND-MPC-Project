@@ -9,6 +9,8 @@ set(DOCKER_RELEASE_BUILD
   -f ${CMAKE_BINARY_DIR}/Dockerfile
   ${CMAKE_SOURCE_DIR})
 
+set(DOCKER_RELEASE_TAG `git rev-parse --abbrev-ref HEAD`.`git rev-parse --short HEAD`)
+
 set(DOCKER_DEV_IMAGE sgalkin/carnd-t2-dev)
 set(DOCKER_NAME cmake-${CMAKE_PROJECT_NAME}-env)
 set(DOCKER_MOUNT -v ${CMAKE_SOURCE_DIR}:/repo:ro)
@@ -51,9 +53,11 @@ endif()
 add_custom_target(docker-release
   COMMAND git diff-index --quiet HEAD || (echo "There are uncommited changes. Please commit to continue" && false)
   COMMAND ${DOCKER_RELEASE_BUILD}
-  COMMAND docker tag ${DOCKER_RELEASE_IMAGE} ${DOCKER_RELEASE_IMAGE}:`git rev-parse --abbrev-ref HEAD`.`git rev-parse --short HEAD`
+  COMMAND docker tag ${DOCKER_RELEASE_IMAGE} ${DOCKER_RELEASE_IMAGE}:${DOCKER_RELEASE_TAG}
+  COMMAND echo "docker run --rm -t ${DOCKER_NETWORK} ${DOCKER_RELEASE_IMAGE} $@" > ${CMAKE_BINARY_DIR}
+  COMMAND chmod 755 ${CMAKE_BINARY_DIR}
   DEPENDS ${CMAKE_BINARY_DIR}/Dockerfile ${CMAKE_SOURCE_DIR}/Dockerfile.in
   SOURCES ${CMAKE_SOURCE_DIR}/Dockerfile.in)
 
 add_custom_target(docker-push
-  COMMAND docker push ${DOCKER_RELEASE_IMAGE})
+  COMMAND docker push ${DOCKER_RELEASE_IMAGE}:${DOCKER_RELEASE_TAG})

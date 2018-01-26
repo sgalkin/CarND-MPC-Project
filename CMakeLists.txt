@@ -17,6 +17,6 @@ if(DOCKER_BUILD)
   include(EnableDockerBuild)
 endif()
 
-if(${LOCAL_BUILD})
+if(LOCAL_BUILD)
   include(EnableLocalBuild)
 endif()

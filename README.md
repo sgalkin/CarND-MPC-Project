@@ -205,3 +205,6 @@ Each state was passed through the following pipeline
 ## TODO
 1. Try to use different cost function.
 2. Increase code coverage
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbLTIwMjA4NTc1NDJdfQ==
+-->

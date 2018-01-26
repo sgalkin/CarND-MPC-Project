@@ -34,7 +34,7 @@ jobs:
           command: |
             mkdir build
             cd build
-            cmake ..
+            cmake .. -DLOCAL_BUILD=OFF -DDOCKER_BUILD=ON
             make docker-release
             make docker-push
 

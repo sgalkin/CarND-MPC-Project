@@ -53,7 +53,7 @@ Available options:
 
 ### Libraries not included into the project
 * [`uWebSocketIO`](https://github.com/uWebSockets/uWebSockets) == v0.13.0
-  * Ubuntu/Debian: the repository includes [`install-ubuntu.sh`](./scripts/install_ubuntu.sh) that can be used to set
+  * Ubuntu/Debian: the repository includes [`install-ubuntu.sh`](./scripts/install-ubuntu.sh) that can be used to set
     up and install `uWebSocketIO`
   * Mac: the repository includes [`install-mac.sh`](./scripts/install-mac.sh)
     that can be used to set up and install `uWebSocketIO`
